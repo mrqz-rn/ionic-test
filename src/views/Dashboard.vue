@@ -635,6 +635,7 @@ export default {
               status: true,
               picture: this.image
             }
+            await loading.present();
           }else{
             photo_data = await this.openCam()
             if(photo_data.status == false){
