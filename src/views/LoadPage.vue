@@ -11,9 +11,21 @@ import { IonPage, IonSpinner } from '@ionic/vue';
 export default {
   components: { IonPage, IonSpinner },
   async created(){
-    const user = await this.$storage.getItem('session-user');
-    const attlogs = await this.$storage.getItem('session-attlogs');
-    console.log(attlogs)
+    try {
+      const user = await this.$storage.getItem('session-user');
+      if(user == null){
+        setTimeout(() => { this.$router.push('login') }, 500);
+      }else{
+        setTimeout(() => { this.$router.push('dashboard') }, 500);
+      }
+    } catch (error) {
+      console.log(error)
+      setTimeout(() => {
+        this.$router.go()
+      }, 500);
+    }
+    // const attlogs = await this.$storage.getItem('session-attlogs');
+
     // if(attlogs != null){
     //   let limitdate = new Date();
     //   limitdate.setDate(limitdate.getDate() - 60);
@@ -34,12 +46,7 @@ export default {
     // }
 
 
-    if(user == null){
-      setTimeout(() => { this.$router.push('login') }, 500);
-    }else{
-      setTimeout(() => { this.$router.push('dashboard') }, 500);
-      // console.log(user)
-    }
+    
   }
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <!-- <ion-app :style="isonWeb ? 'max-width: 30svw; margin: auto;' : ''"> -->
-    <ion-app> 
+    <ion-app style="background-color: whitesmoke;"> 
     <ion-router-outlet />
   </ion-app>
 </template>
@@ -89,7 +89,8 @@ export default {
 
 ::-webkit-scrollbar
 {
-	width: 8px;
+	width: 4px;
+  height: 5px;
 	background-color: #F5F5F5;
 }
 
@@ -208,4 +209,23 @@ ion-button.main{
   font-weight: 600 !important; 
   justify-content: center !important;
  }
+ .darkInput{
+    --border-color: #212121;
+    --border-radius: 4px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    min-height: 38px;
+    --color: black;
+}
+.black--text{
+    color: black;
+}
+ion-button#custom-success {
+    --background: #2E7D32;
+    --background-hover: #2E7D32;
+    --background-activated: #2E7D32;
+    --background-focused: #2E7D32;
+    --color: white;
+    /* min-height: 1.9em !important; */
+  }
 </style>

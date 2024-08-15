@@ -53,7 +53,11 @@ const routes = [
       },
     ],
   },
-
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('../views/admin/Main.vue'),
+  },
 
  
 

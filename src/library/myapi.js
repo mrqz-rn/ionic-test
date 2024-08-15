@@ -1,21 +1,12 @@
 import axios from 'axios';
 import { CapacitorHttp } from '@capacitor/core';
 
+const API_URL = 'http://localhost/api_spottweb/spott'; // localhost
+const DB_NAME = 'spottdb';
 
-// const API_URL = 'http://localhost/api/spott'; // localhost
-// const API_URL = 'http://192.168.86.1/api/spott'; // localhost
-// const API_URL = 'http://209.2.5.40/api/spott'; // localhost
+// const API_URL = 'https://spottapp.online/api/spott';
+// const DB_NAME = 'if0_37069932_spottdb';
 
-// const API_URL = 'http://192.168.0.113/api/spott'; // local home ethernet
-// const API_URL = 'http://192.168.86.1/api/spott'; // localhost
-
-
-
-// const API_URL = 'http://202.2.2.89/testapi/spott';
-// const API_URL = 'http://112.199.74.59:286/testapi/spott';
-// const API_URL = 'http://112.199.74.59:286/api/spott';
-
-const API_URL = 'https://spottapp.online/api/spott';
 
 const MyApi = {
     install(app) {
@@ -131,6 +122,24 @@ const MyApi = {
                   dateFrom: '',
                   dateTo: '',
                   isLive: userData.isLive
+                }).toString()
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
+            },
+            getrptattlogs: async (userData) => {
+              const options = {
+                url:`${API_URL}/timekeeping/rptattlogs`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: new URLSearchParams({
+                  dateFrom: userData.dateFrom,
+                  dateTo: userData.dateTo,
                 }).toString()
               }
               
@@ -271,7 +280,71 @@ const MyApi = {
                 console.error('Error fetching user:', error);
                 throw error;
               }
+            },
+            masterselect: async (userData) => {
+              const options = {
+                url:`${API_URL}/masterdata/masterselect`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: {
+                  table_name: `${DB_NAME}.${userData.table_name}`,
+                }
+              }
+              if(userData.having){
+                options.data.having = JSON.stringify(userData.having)
+              }
+              if(userData.fields){
+                options.data.fields = JSON.stringify(userData.fields)
+              }
+              options.data = new URLSearchParams(options.data).toString()
+   
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
+            },
+            savedata: async (userData) => {
+              const options = {
+                url:`${API_URL}/masterdata/savedata`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: new URLSearchParams({
+                  tableName: `${DB_NAME}.${userData.table_name}`,
+                  fields: JSON.stringify(userData.fields),
+                  key: JSON.stringify(userData.key)
+                }).toString()
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
+            },
+            deletedata: async (userData) => {
+              const options = {
+                url:`${API_URL}/masterdata/masterdelete`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: new URLSearchParams({
+                  table_name: `${DB_NAME}.${userData.table_name}`,
+                  filters: JSON.stringify(userData.filters),
+                  key: JSON.stringify(userData.key)
+                }).toString()
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
             }
+        
       }
     }
 };

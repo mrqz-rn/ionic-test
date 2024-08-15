@@ -7,6 +7,8 @@ import MyApi from './library/myapi';
 import MyStorage from './library/storage';
 import MyFunctions from './library/functions';
 import { registerPlugin } from '@capacitor/core';
+import JsonExcel from "vue-json-excel3";
+
 
 // Register the plugin
 const DatetimeSetting = registerPlugin('DatetimeSetting', {

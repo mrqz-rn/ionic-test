@@ -35,10 +35,13 @@
     "idb": "^8.0.0",
     "ionicons": "^7.0.0",
     "md5": "^2.3.0",
+    "read-excel-file": "^5.8.4",
     "vue": "^3.3.0",
+    "vue-json-excel3": "^1.0.29",
     "vue-router": "^4.2.0",
-    "vuetify": "^3.6.0-beta.0.0",
-    "vuex": "^4.0.2"
+    "vuetify": "^3.6.14",
+    "vuex": "^4.0.2",
+    "webpack-plugin-vuetify": "^3.0.3"
   },
   "devDependencies": {
     "@capacitor/cli": "6.1.0",

@@ -24,6 +24,8 @@ npm-debug.log*
 /.versions
 /.vscode/*
 !/.vscode/extensions.json
+/.package-lock.json
+/android
 /coverage
 /dist
 /node_modules

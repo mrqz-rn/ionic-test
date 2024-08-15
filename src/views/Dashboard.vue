@@ -86,10 +86,10 @@
           </div>
         </ion-modal>
     </ion-content>
-    <div v-if="webCapturing == true" style="position: absolute; top: 50%; transform: translateY(-50%)">
+    <div v-if="webCapturing == true" style="position: absolute; top: 50%; transform: translateY(-50%); z-index: 40005 !important;">
       <img v-if="image" style="object-fit: contain;"
-      :src="image" alt="Captured Image" :style="isonWeb ? ' width: 100vw !important; max-height: 60vh' : 'width: 100vw !important;'"/>
-      <video v-else ref="video" autoplay :style="isonWeb ? 'width: 100vw !important; max-height: 60vh' : 'width: 100vw !important;'"></video>
+      :src="image" alt="Captured Image" :style="isonWeb ? ' width: 100vw !important; max-height: 60vh !important;' : 'width: 100vw !important;'"/>
+      <video v-else ref="video" autoplay :style="isonWeb ? 'width: 100vw !important; max-height: 60vh !important;' : 'width: 100vw !important;'"></video>
       <div v-if="image" class="d-flex justify-center px-10 pt-4" style="gap: 5vw;">
         <ion-button shape="round" @click="retakeImage" class="" color="medium">
           <ion-icon slot="icon-only" :icon="arrowUndo" class="ma-2"></ion-icon>
@@ -228,7 +228,7 @@ export default {
     this.app_config = await this.$storage.getItem('app-config');
     const net = await Network.getStatus()
     if(net.connectionType != 'none'){
-      this.getPayperiod()
+      // this.getPayperiod()
 
       try{
         const data = await Geolocation.getCurrentPosition({
@@ -615,6 +615,7 @@ export default {
         }
       }else{
         // VALIDATE IMAGECAPTURE
+        let loadingDiv = document.querySelector('ion-loading');
         if(this.user_info.imageCapture == '1'){
           if(this.isonWeb == true){
             this.webCapturing = true;
@@ -625,22 +626,25 @@ export default {
               };
               
               document.addEventListener('imageCaptured', handler);
-              loading.dismiss();
+              setTimeout(() => {
+                loadingDiv.classList.add('hide_loader');
+              }, 500);
               this.startCamera()
               console.log('Waiting for image captured');
               
             });
+            loadingDiv.classList.remove('hide_loader');
             console.log('Image captured');
             photo_data = {
               status: true,
               picture: this.image
             }
-            await loading.present();
+            // await loading.present();
           }else{
             photo_data = await this.openCam()
             if(photo_data.status == false){
               this.dtrbusy = false;
-              await loading.dismiss();
+              // await loading.dismiss();
               return this.showAlert({header: 'Warning!', message: 'Image capture failed. Please try again.'})
             }
           }
@@ -1161,5 +1165,9 @@ ion-spinner.load{
 .customInput label .native-wrapper{
   margin: 5px !important;
   flex-grow: 0 !important;
+}
+.hide_loader{
+  position: relative !important;
+  z-index: 10 !important;
 }
 </style>
