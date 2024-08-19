@@ -36,7 +36,7 @@
         <ion-col size-xs="12" size-sm="12"  size-md="12" size-lg="12" size-xl="12" >
             <ion-card class="pa-4">
                 <h3 class="pb-2 px-2 black-text">Attlogs Record</h3>
-                <ion-button color="danger" shape="round" @click="deleteAttlogs()">Delete Record older than 90 days</ion-button>
+                <ion-button color="danger" shape="round" @click="deleteAttlogs()">Delete Attlogs</ion-button>
             </ion-card>
         </ion-col>
     </ion-row>
@@ -140,6 +140,39 @@ export default {
             await alert.present();
 
         },
+
+        async deleteAttlogs(){
+            const alert = await alertController.create({
+                header: 'Alert!',
+                message: 'Records older than 90 days will be deleted by this action. Are you sure you want to proceed?',
+                buttons: [
+                    {
+                        text: 'No',
+                        role: 'cancel',
+                        handler: () => {
+                            console.log('Alert canceled');
+                        },
+                    },
+                    {
+                        text: 'Yes',
+                        role: 'confirm',
+                        handler: async () => {
+                            const res = await this.$api.deleteattlogs({})
+                            if(res.result){
+                                return this.showAlert({header: 'Success!', message: 'Attlogs deleted successfully'})
+                            }else{
+                                console.log(res)
+                                return this.showAlert({header: 'Error!', message: 'Failed to delete attlogs'})
+                            }
+                           
+                        },
+                    },
+                ],
+            });
+            await alert.present();
+        },
+
+
         async showAlert(data){
             const alert = await alertController.create({
                 header: data.header,

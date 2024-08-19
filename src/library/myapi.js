@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { CapacitorHttp } from '@capacitor/core';
 
-const API_URL = 'http://localhost/api_spottweb/spott'; // localhost
-const DB_NAME = 'spottdb';
+// const API_URL = 'http://localhost/api_spottweb/spott'; // localhost
+// const DB_NAME = 'spottdb';
 
-// const API_URL = 'https://spottapp.online/api/spott';
-// const DB_NAME = 'if0_37069932_spottdb';
+const API_URL = 'https://spottapp.online/api/spott';
+const DB_NAME = 'if0_37069932_spottdb';
 
 
 const MyApi = {
@@ -333,6 +333,23 @@ const MyApi = {
                   table_name: `${DB_NAME}.${userData.table_name}`,
                   filters: JSON.stringify(userData.filters),
                   key: JSON.stringify(userData.key)
+                }).toString()
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
+            },
+            deleteattlogs: async (userData) => {
+              const options = {
+                url:`${API_URL}/timekeeping/cleanAttlogs`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: new URLSearchParams({
+                  data: ''
                 }).toString()
               }
               

@@ -4,8 +4,8 @@ import path from 'path'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  // base: '/main/',  // PRODUCTION
-  base: '/', // DEVELOPMENT
+  base: '/main/',  // PRODUCTION
+  // base: '/', // DEVELOPMENT
   build: {
     outDir: 'dist', // Make sure this is where you expect your assets to be
     assetsDir: 'assets',
