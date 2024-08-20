@@ -73,10 +73,10 @@
                 <p style=" color: #0068d1; text-decoration: underline" @click="inputrem = !inputrem">Input / Edit</p>
               </div>
               <div v-if="inputrem == true">
-                <IonInput v-model="remarks"
+                <ion-textarea v-model="remarks" id="remarkarea"
                 class="pt-3" label="Remarks" fill="outline"  label-placement="stacked" 
                 placeholder="(Optional)">
-                </IonInput>
+                </ion-textarea>
                 <ion-button class="pt-3" expand="full" shape="" @click="saveRemarks()">Save</ion-button> 
               </div>
               <p v-else style="" class="px-2" >{{ viewLog.trxIN.remark || '---' }}  </p>
@@ -88,8 +88,8 @@
     </ion-content>
     <div v-if="webCapturing == true" style="position: absolute; top: 50%; transform: translateY(-50%); z-index: 40005 !important;">
       <img v-if="image" style="object-fit: contain;"
-      :src="image" alt="Captured Image" :style="isonWeb ? ' width: 100vw !important; max-height: 60vh !important;' : 'width: 100vw !important;'"/>
-      <video v-else ref="video" autoplay :style="isonWeb ? 'width: 100vw !important; max-height: 60vh !important;' : 'width: 100vw !important;'"></video>
+      :src="image" alt="Captured Image" :style="isonWeb ? ' width: 100vw !important;' : 'width: 100vw !important;'"/>
+      <video v-else ref="video" autoplay :style="isonWeb ? 'width: 100vw !important;' : 'width: 100vw !important;'"></video>
       <div v-if="image" class="d-flex justify-center px-10 pt-4" style="gap: 5vw;">
         <ion-button shape="round" @click="retakeImage" class="" color="medium">
           <ion-icon slot="icon-only" :icon="arrowUndo" class="ma-2"></ion-icon>
@@ -120,7 +120,7 @@
 
 import { 
   IonPage, IonContent, IonHeader, IonButton, IonToolbar, IonList, IonModal, modalController , IonToast,
-  IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle, IonChip, IonSpinner, IonInput,
+  IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle, IonChip, IonSpinner, IonInput, IonTextarea,
   IonMenu, IonMenuButton, IonTitle, IonLabel, IonItem, IonButtons, alertController ,loadingController, IonIcon
    
 } from '@ionic/vue';
@@ -135,7 +135,7 @@ import { eye, book, camera, save, close, arrowUndo } from 'ionicons/icons';
 export default {
   components: {
     IonPage, IonContent, IonHeader, IonButton, IonToolbar, IonItem,IonList,IonModal,modalController,IonToast,
-    IonButtons,IonMenu,IonTitle,IonMenuButton,IonLabel, IonChip, alertController, loadingController,
+    IonButtons,IonMenu,IonTitle,IonMenuButton,IonLabel, IonChip, alertController, loadingController,IonTextarea,
     IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle,IonSpinner, IonInput, IonIcon
   },
   data(){
@@ -1169,5 +1169,8 @@ ion-spinner.load{
 .hide_loader{
   position: relative !important;
   z-index: 10 !important;
+}
+ion-textarea#remarkarea{
+  min-height: 90px !important;
 }
 </style>
