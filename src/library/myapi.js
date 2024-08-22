@@ -3,7 +3,7 @@ import { CapacitorHttp } from '@capacitor/core';
 
 
 // const API_URL = 'http://localhost/api/spott'; // localhost
-// const API_URL = 'http://192.168.86.1/api/spott'; // localhost
+const API_URL = 'http://192.168.86.1/api/spott'; // localhost
 // const API_URL = 'http://209.2.5.40/api/spott'; // localhost
 
 // const API_URL = 'http://192.168.0.113/api/spott'; // local home ethernet
@@ -15,7 +15,7 @@ import { CapacitorHttp } from '@capacitor/core';
 // const API_URL = 'http://112.199.74.59:286/testapi/spott';
 // const API_URL = 'http://112.199.74.59:286/api/spott';
 
-const API_URL = 'https://spottapp.online/api/spott';
+// const API_URL = 'https://spottapp.online/api/spott';
 
 const MyApi = {
     install(app) {

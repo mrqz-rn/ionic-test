@@ -204,20 +204,6 @@ export default {
     const info = await Device.getId();
     const deviceInfo = await Device.getInfo();
     
-    if(!['android', 'ios'].includes(deviceInfo.platform)){
-      this.isonWeb = true
-      const time = await this.$api.gettime('')
-      let webtime = new Date(time.datetime)
-      let timenow = new Date()
-      let diff = Math.abs(timenow - webtime)
-      let diffMins = Math.floor((diff/1000)/60); 
-      if(diffMins > 2){
-        this.showAlert({header: 'Warning!', message: 'Device time is not sync with actual time. Please check your device time settings.'})
-        this.setSnackBar(true, 'Device time is not sync with actual time. Please check your device time settings.', 'danger');
-        return
-      }
-    }
-    console.log(deviceInfo, this.isonWeb)
     this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
     this.device.model = deviceInfo.model;
     this.device.identifier = info.identifier;
