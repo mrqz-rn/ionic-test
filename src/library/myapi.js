@@ -4,9 +4,11 @@ import { CapacitorHttp } from '@capacitor/core';
 // const API_URL = 'http://localhost/api_spottweb/spott'; // localhost
 // const DB_NAME = 'spottdb';
 
-const API_URL = 'https://spottapp.online/api/spott';
-const DB_NAME = 'if0_37069932_spottdb';
+// const API_URL = 'https://spottapp.online/api/spott';
+// const DB_NAME = 'if0_37069932_spottdb';
 
+const API_URL = 'http://192.168.86.1/api/spott'; // localhost
+const DB_NAME = 'spottdb';
 
 const MyApi = {
     install(app) {
