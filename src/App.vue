@@ -11,7 +11,6 @@ import { IonApp, IonRouterOutlet } from '@ionic/vue';
 import { useBackButton, useIonRouter } from '@ionic/vue';
 import { alertController } from '@ionic/vue';
 import { Device } from '@capacitor/device';
-import { WebView } from '@capacitor/core';
 
 
 export default {
@@ -58,11 +57,7 @@ export default {
 
   },
   mounted(){
-    if(Capacitor.isNativePlatform()){
-      WebView.setServerBasePath('http://localhost');
-      WebView.setServerBasePath('http://112.199.74.59:286');
-      WebView.setServerBasePath('https://spottapp.online');
-    }
+
    
   },
   methods: {
