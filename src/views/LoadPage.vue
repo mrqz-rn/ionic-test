@@ -13,21 +13,33 @@ export default {
   components: { IonPage, IonSpinner },
   async created(){
     const user = await this.$storage.getItem('session-user');
-    const appVersion = '1.2';
+    const appVersion = '1.2.5';
 
     const net = await Network.getStatus();
-    if (net.connectionType === 'none') {
-      setTimeout(() => { this.$router.push('login') }, 500);
-    } else {
-      const res = await this.$api.getappconfig();
-      this.$storage.setItem('app-config', (res));
-      console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
-      if (res.version != appVersion) {
-        this.$router.push('update');
-      } else {
-        setTimeout(() => { this.$router.push('dashboard') }, 500);
-      }
-    }
+        if(user){
+          this.$router.push('dashboard');
+        }else{
+          this.$router.push('login');
+        }
+    // if(net.connectionType != 'none'){
+    //   const res = await this.$api.getappconfig();
+    //   console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
+    //   if (res.version != appVersion) {
+    //     this.$router.push('update');
+    //   }else{
+    //     if(user){
+    //       this.$router.push('dashboard');
+    //     }else{
+    //       this.$router.push('login');
+    //     }
+    //   }
+    // }else{
+    //   if(user){
+    //     this.$router.push('dashboard');
+    //   }else{
+    //     this.$router.push('login');
+    //   }
+    // }
   }
 }
 </script>

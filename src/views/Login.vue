@@ -72,6 +72,7 @@ export default {
         }
     },
     async created(){
+      this.checkperms()
       const info = await Device.getId();
       const deviceInfo = await Device.getInfo();
       if(!['android', 'ios'].includes(deviceInfo.platform)){
@@ -123,7 +124,7 @@ export default {
           this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
         }
       }
-      this.checkperms()
+      // this.checkperms()
     },
     methods: {
       async checkperms(){
