@@ -58,11 +58,11 @@ export default {
 
   },
   mounted(){
-    if(Capacitor.isNativePlatform()){
-      WebView.setServerBasePath('http://localhost');
-      WebView.setServerBasePath('http://112.199.74.59:286');
-      WebView.setServerBasePath('https://spottapp.online');
-    }
+    // if(Capacitor.isNativePlatform()){
+    //   WebView.setServerBasePath('http://localhost');
+    //   WebView.setServerBasePath('http://112.199.74.59:286');
+    //   WebView.setServerBasePath('https://spottapp.online');
+    // }
    
   },
   methods: {
