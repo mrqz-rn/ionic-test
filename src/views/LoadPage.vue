@@ -24,26 +24,7 @@ export default {
         this.$router.go()
       }, 500);
     }
-    // const attlogs = await this.$storage.getItem('session-attlogs');
 
-    // if(attlogs != null){
-    //   let limitdate = new Date();
-    //   limitdate.setDate(limitdate.getDate() - 60);
-
-    //   let fordeletion = attlogs.filter(e => e.upload_status == '1' && new Date(e.trxdatedb) < limitdate);
-    //   if(fordeletion.length > 0){
-    //     let ids = fordeletion.map(e => {
-    //       return e.id
-    //     })
-      
-    //   if(attlogs.length > 1){
-    //     let valid_attlogs = attlogs.filter(e => !ids.includes(e.id));
-    //     await this.$storage.removeItem('session-attlogs');
-    //     await this.$storage.setItem('session-attlogs', valid_attlogs);
-    //     console.log(valid_attlogs)
-    //   }
-    // }
-    // }
 
 
     

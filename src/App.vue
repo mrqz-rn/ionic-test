@@ -1,5 +1,4 @@
 <template>
-  <!-- <ion-app :style="isonWeb ? 'max-width: 30svw; margin: auto;' : ''"> -->
     <ion-app style="background-color: whitesmoke;"> 
     <ion-router-outlet />
   </ion-app>
@@ -29,40 +28,11 @@ export default {
     }
   },
   async created(){
-    const info = await Device.getId();
-    const deviceInfo = await Device.getInfo();
-    if(!['android', 'ios'].includes(deviceInfo.platform)){
-      this.isonWeb = true
-    }
-
+    // const info = await Device.getId();
+    // const deviceInfo = await Device.getInfo();
     this.$storage.initStorage();
-    let backPressCount = 0;
-    let backPressTimer;
-    if(!this.isonWeb){
-      const ionRouter = useIonRouter();
-      useBackButton(-1, () => {
-        if(this.$route.name == 'dashboard'){
-          this.showAlert({header: 'Warning', message: 'Please press back again to exit',})
-          if (backPressCount === 1) {
-            backPressCount++;
-            backPressTimer = setTimeout(() => {
-              backPressCount = 0; // Reset count after 2 seconds
-            }, 2000);
-          } else if (backPressCount === 2) {
-            navigator.app.exitApp();
-          }
-        }
-      });
-    }
-   
-
   },
   mounted(){
-    // if(Capacitor.isNativePlatform()){
-    //   WebView.setServerBasePath('http://localhost');
-    //   WebView.setServerBasePath('http://112.199.74.59:286');
-    //   WebView.setServerBasePath('https://spottapp.online');
-    // }
    
   },
   methods: {

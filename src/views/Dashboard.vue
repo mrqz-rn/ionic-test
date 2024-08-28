@@ -86,31 +86,6 @@
           </div>
         </ion-modal>
     </ion-content>
-    <div v-if="webCapturing == true" style="position: absolute; top: 50%; transform: translateY(-50%); z-index: 40005 !important;">
-      <img v-if="image" style="object-fit: contain;"
-      :src="image" alt="Captured Image" :style="isonWeb ? ' width: 100vw !important;' : 'width: 100vw !important;'"/>
-      <video v-else ref="video" autoplay :style="isonWeb ? 'width: 100vw !important;' : 'width: 100vw !important;'"></video>
-      <div v-if="image" class="d-flex justify-center px-10 pt-4" style="gap: 5vw;">
-        <ion-button shape="round" @click="retakeImage" class="" color="medium">
-          <ion-icon slot="icon-only" :icon="arrowUndo" class="ma-2"></ion-icon>
-        </ion-button>
-        <ion-button shape="round" @click="saveCapture" class="" color="success" dark>
-          <ion-icon slot="icon-only" :icon="save" class="ma-2"></ion-icon>
-        </ion-button>
-        <ion-button style="opacity: 0;"></ion-button>
-
-      </div>
-      <div v-else class="d-flex justify-center px-10 pt-4" style="gap: 5vw;">
-        <ion-button shape="round" @click="stopCamera()" class="" color="medium">
-          <ion-icon slot="icon-only" :icon="close" class="ma-2"></ion-icon>
-        </ion-button>
-        <ion-button shape="round" @click="captureImage" class="">
-          <ion-icon slot="icon-only" :icon="camera" class="ma-2"></ion-icon>
-        </ion-button>
-        <ion-button style="opacity: 0;"></ion-button>
-      </div>
-      <canvas ref="canvas" width="640" height="480" style="display: none;"></canvas>
-    </div>
     
   </IonPage>
 </template>
@@ -188,7 +163,6 @@ export default {
       requireNet: false,
       settings: false,
 
-      isonWeb: false,
       stream: null,
       image: null,
       webCapturing: false
@@ -204,20 +178,7 @@ export default {
     const info = await Device.getId();
     const deviceInfo = await Device.getInfo();
     
-    if(!['android', 'ios'].includes(deviceInfo.platform)){
-      this.isonWeb = true
-      const time = await this.$api.gettime('')
-      let webtime = new Date(time.datetime)
-      let timenow = new Date()
-      let diff = Math.abs(timenow - webtime)
-      let diffMins = Math.floor((diff/1000)/60); 
-      if(diffMins > 2){
-        this.showAlert({header: 'Warning!', message: 'Device time is not sync with actual time. Please check your device time settings.'})
-        this.setSnackBar(true, 'Device time is not sync with actual time. Please check your device time settings.', 'danger');
-        return
-      }
-    }
-    console.log(deviceInfo, this.isonWeb)
+  
     this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
     this.device.model = deviceInfo.model;
     this.device.identifier = info.identifier;
@@ -615,39 +576,15 @@ export default {
         }
       }else{
         // VALIDATE IMAGECAPTURE
-        let loadingDiv = document.querySelector('ion-loading');
         if(this.user_info.imageCapture == '1'){
-          if(this.isonWeb == true){
-            this.webCapturing = true;
-            await new Promise(resolve => {
-              const handler = () => {
-                document.removeEventListener('imageCaptured', handler);
-                resolve();
-              };
-              
-              document.addEventListener('imageCaptured', handler);
-              setTimeout(() => {
-                loadingDiv.classList.add('hide_loader');
-              }, 500);
-              this.startCamera()
-              console.log('Waiting for image captured');
-              
-            });
-            loadingDiv.classList.remove('hide_loader');
-            console.log('Image captured');
-            photo_data = {
-              status: true,
-              picture: this.image
-            }
-            // await loading.present();
-          }else{
+         
             photo_data = await this.openCam()
             if(photo_data.status == false){
               this.dtrbusy = false;
               // await loading.dismiss();
               return this.showAlert({header: 'Warning!', message: 'Image capture failed. Please try again.'})
             }
-          }
+          
         }
       }
 
@@ -913,41 +850,6 @@ export default {
         err: null
       }
 
-      if(this.isonWeb){
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            console.log(position.coords.latitude, position.coords.longitude);
-            location_data.status = true
-            location_data.coordinates = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            }
-          },
-          (error) => {
-            console.error('Geolocation error:', error.message);
-            switch(error.code) {
-              case error.PERMISSION_DENIED:
-                location_data.status = false
-                this.showAlert({header: 'Warning!', message: 'User denied the request for Geolocation'});
-                break;
-              case error.POSITION_UNAVAILABLE:
-                location_data.status = false
-                this.showAlert({header: 'Warning!', message: 'Location information is unavailable'});
-                break;
-              case error.TIMEOUT:
-                location_data.status = false
-                this.showAlert({header: 'Warning!', message: 'The request to get user location timed out'});
-                break;
-              case error.UNKNOWN_ERROR:
-                location_data.status = false
-                this.showAlert({header: 'Warning!', message: 'An unknown error occurred'});
-                break;
-            }
-          },
-          { timeout: 5000, enableHighAccuracy: false, maximumAge: Infinity }
-        );
-        return location_data
-      }else{
         const loc = await Geolocation.checkPermissions();
         let data = {}
         if(loc.location != 'granted'){
@@ -974,7 +876,7 @@ export default {
           location_data.err = 2
           return location_data
         }
-      }
+      
    
     
      
