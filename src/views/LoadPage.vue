@@ -24,9 +24,6 @@ export default {
         this.$router.go()
       }, 500);
     }
-
-
-
     
   }
 }

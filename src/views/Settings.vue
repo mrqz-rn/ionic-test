@@ -225,30 +225,6 @@ async fetchAddress(){
         const res = await this.$api.uploadLocation(data);
         if(res.status == true){
 
-
-          // const response = await this.$api.masterselect({
-          //     table_name: 'allowed_locations',
-          //     having: {
-          //         username: this.user_info.username
-          //     }
-          // });
-          // let allowed = '';
-          // response.forEach((element, id) => {
-          //   allowed += `${element.longitude}:${element.latitude}:${element.radius}`
-          //   if(id < response.length - 1){
-          //     allowed += ','
-          //   }
-          // });
-          // // console.log(allowed)
-          // const res = await this.$api.savedata({
-          //     table_name: 'spott_config_view',
-          //     fields: { 
-          //         username: this.user_info.username,
-          //         allowedLocations: allowed
-          //     },
-          //     key: ['username']
-          // })
-
           const response = await this.$api.masterselect({
               table_name: 'spott_config_view',
               having: {

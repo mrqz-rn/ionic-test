@@ -86,7 +86,6 @@ export default {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             console.log(position.coords.latitude, position.coords.longitude);
-            // this.showAlert({header: 'Warning!', message: JSON.stringify(position)});
           },
           (error) => {
             console.error('Geolocation error:', error.message);
@@ -175,7 +174,6 @@ export default {
           return this.showAlert({header: 'Warning!', message: 'Please enter username and password.'})
         }
         let platform = `${this.device.model}=>${this.device.identifier}`;
-        // let platform = 'SM-G955U=>074d8861-04bf-46de-8fff-0c5caae12784';
         let data = {
           username: this.logindata.username,
           password: MD5(this.logindata.password),

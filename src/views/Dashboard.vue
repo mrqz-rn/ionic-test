@@ -679,55 +679,6 @@ export default {
     const loading = await loadingController.create({ message: 'Uploading offline logs...', translucent: true });
     await loading.present();
 
-    // data.forEach(async (element)  => {
-    //   element.isLive = this.user_info.isLive;
-    //   const check = await this.$api.checktrx(element);
-    //   if (check.status == true && check.data == '0') {
-    //     const result = await this.upload_log(element);
-    //     if (result.status == true && result.message == '') {
-    //       element.upload_status = 1;
-    //       await this.$storage.updateAttlogs(element);
-    //     } else if (result.status == true && result.message == 'duplicate') {
-    //       element.upload_status = 1;
-    //       await this.$storage.updateAttlogs(element);
-    //     }
-    //     this.attlogs = await this.$storage.getItem('session-attlogs');
-    //     this.$forceUpdate();
-    //   } else if(check.data == '1'){
-    //     element.upload_status = 1;
-    //     this.$forceUpdate();
-    //     await this.$storage.updateAttlogs(element);
-    //   }
-    // });
-
-    // await Promise.all(
-    //   data.map(async (element) => {
-    //     element.isLive = this.user_info.isLive;
-    //     const check = await this.$api.checktrx(element);
-
-    //     if (check.status === true && check.data === '0') {
-    //       const result = await this.upload_log(element);
-    //       if (result.status === true && (result.message === '' || result.message === 'duplicate')) {
-    //         element.upload_status = 1;
-    //         await this.$storage.updateAttlogs(element);
-    //       }
-    //     } else if (check.data === '1') {
-    //       element.upload_status = 1;
-    //       await this.$storage.updateAttlogs(element);
-    //     }
-        
-    //     return element;
-    //   })
-    // ).then(async () => {
-    //   this.attlogs = await this.$storage.getItem('session-attlogs');
-    //   this.$forceUpdate();
-    // }).catch(error => {
-    //   console.error('Error processing data:', error);
-    // });
-
-
-
-
     for (const element of data) {
       element.isLive = this.user_info.isLive;
         const check = await this.$api.checktrx(element);
