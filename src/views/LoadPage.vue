@@ -7,38 +7,26 @@
 
 <script>
 import { IonPage, IonSpinner } from '@ionic/vue';
+import { Network } from '@capacitor/network';
 
 export default {
   components: { IonPage, IonSpinner },
   async created(){
     const user = await this.$storage.getItem('session-user');
-    const attlogs = await this.$storage.getItem('session-attlogs');
-    console.log(attlogs)
-    // if(attlogs != null){
-    //   let limitdate = new Date();
-    //   limitdate.setDate(limitdate.getDate() - 60);
+    const appVersion = '1.2';
 
-    //   let fordeletion = attlogs.filter(e => e.upload_status == '1' && new Date(e.trxdatedb) < limitdate);
-    //   if(fordeletion.length > 0){
-    //     let ids = fordeletion.map(e => {
-    //       return e.id
-    //     })
-      
-    //   if(attlogs.length > 1){
-    //     let valid_attlogs = attlogs.filter(e => !ids.includes(e.id));
-    //     await this.$storage.removeItem('session-attlogs');
-    //     await this.$storage.setItem('session-attlogs', valid_attlogs);
-    //     console.log(valid_attlogs)
-    //   }
-    // }
-    // }
-
-
-    if(user == null){
+    const net = await Network.getStatus();
+    if (net.connectionType === 'none') {
       setTimeout(() => { this.$router.push('login') }, 500);
-    }else{
-      setTimeout(() => { this.$router.push('dashboard') }, 500);
-      // console.log(user)
+    } else {
+      const res = await this.$api.getappconfig();
+      this.$storage.setItem('app-config', (res));
+      console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
+      if (res.version != appVersion) {
+        this.$router.push('update');
+      } else {
+        setTimeout(() => { this.$router.push('dashboard') }, 500);
+      }
     }
   }
 }

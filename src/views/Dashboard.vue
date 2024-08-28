@@ -200,6 +200,7 @@ export default {
     }, 1000);
   },
   async created(){
+   
     this.busy = true
     const info = await Device.getId();
     const deviceInfo = await Device.getInfo();
@@ -213,9 +214,10 @@ export default {
     this.user_info = await this.$storage.getItem('session-userinfo');
     this.app_config = await this.$storage.getItem('app-config');
     const net = await Network.getStatus()
+    this.checkLogin(this.session_user)
     if(net.connectionType != 'none'){
       this.getPayperiod()
-
+      
       try{
         const data = await Geolocation.getCurrentPosition({
           enableHighAccuracy: false,  
@@ -439,6 +441,24 @@ export default {
         // this.$refs.video.srcObject = null;
         this.stream = null;
         this.webCapturing = false
+      }
+    },
+    async checkLogin(data){
+      const net = await Network.getStatus();
+      if(net.connectionType != 'none'){
+        const res = await this.$api.checklogin(data);
+        if(res.requireLogin == 1){
+          console.log('require login')
+          await this.$storage.clearStorage(); 
+          await this.$storage.removeItem('session-userinfo');
+          await this.$storage.removeItem('session-user');
+          await this.$storage.removeItem('session-attlogs');
+           
+          setTimeout(() => {
+              this.$router.push('login')
+            }, 250);
+          
+        }
       }
     },
     async getAttlogs(){
