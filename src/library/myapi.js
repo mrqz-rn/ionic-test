@@ -1,14 +1,11 @@
 import axios from 'axios';
 import { CapacitorHttp } from '@capacitor/core';
 
-// const API_URL = 'http://localhost/api_spottweb/spott'; // localhost
-// const DB_NAME = 'spottdb';
-
-// const API_URL = 'https://spottapp.online/api/spott';
-// const DB_NAME = 'if0_37069932_spottdb';
-
-// const API_URL = 'http://192.168.86.1/api/spott'; // localhost
-const API_URL = 'http://192.168.86.1/api_spottweb/spott'; // localhost
+// const API_URL = 'http://localhost/api/spott'; // localhost
+const API_URL = 'http://192.168.86.1/api/spott'; // localhost
+// const API_URL = 'http://209.2.5.40/api/spott'; // localhost
+// const API_URL = 'http://112.199.74.59:286/testapi/spott';
+// const API_URL = 'http://112.199.74.59:286/api/spott';
 const DB_NAME = 'spottdb';
 
 const MyApi = {
