@@ -39,7 +39,7 @@ import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { Camera } from '@capacitor/camera';
-
+import { DatetimeSetting } from 'capacitor-datetime-setting';
 
 export default {
   components: {
@@ -248,6 +248,10 @@ export default {
         return response.status
       },
       async validateSettings(){
+        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        console.log(autoTimeResult);
+        this.showAlert({header: 'Warning!', message: autoTimeResult})
+        
         const network = await Network.getStatus();
         if(network.connectionType == 'none' ){
           console.log('Network status: ', network);
@@ -261,13 +265,15 @@ export default {
             return this.showAlert({header: 'Warning!', message: 'Please enable location services.'})
           }
         }
-      
 
         const timezone = String(new Date()).substr(25, 8);
         if(timezone != 'GMT+0800'){
           console.log('Timezone: ', timezone);
           return this.showAlert({header: 'Warning!', message: 'Please set your timezone to GMT+0800.'})
         }
+
+
+
         return true
       },
       async showAlert(data){

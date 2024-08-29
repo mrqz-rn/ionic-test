@@ -14,7 +14,7 @@ export default {
   async created(){
     const user = await this.$storage.getItem('session-user');
     const net = await Network.getStatus();
-    const appVersion = '1.2.4';
+    const appVersion = '1.2.5';
 
     if(net.connectionType != 'none'){
       const res = await this.$api.getappconfig();

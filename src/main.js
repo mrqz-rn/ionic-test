@@ -11,9 +11,9 @@ import JsonExcel from "vue-json-excel3";
 
 
 // Register the plugin
-const DatetimeSetting = registerPlugin('DatetimeSetting', {
-  web: () => import('./web').then(m => new m.DatetimeSettingWeb()),
-});
+// const DatetimeSetting = registerPlugin('DatetimeSetting', {
+//   web: () => import('./web').then(m => new m.DatetimeSettingWeb()),
+// });
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';

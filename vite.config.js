@@ -13,6 +13,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: [
       'node_modules/.vite/deps/chunk-46CPRG3S.js',
+      '/node_modules/.vite/deps/capacitor-datetime-setting.js?v=7dc6bcb1'
     ],
   },
   plugins: [
