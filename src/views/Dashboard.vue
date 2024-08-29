@@ -105,6 +105,7 @@ import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { eye, book, camera, save, close, arrowUndo } from 'ionicons/icons';
+import { DatetimeSetting } from 'capacitor-datetime-setting';
 
 
 export default {
@@ -713,7 +714,16 @@ export default {
   },
 
   async validateSettings(){
-         const loc = await Geolocation.checkPermissions();
+        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        if(autoTimeResult.value == false){
+          this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
+          this.btnvalid = false
+          this.settings = false
+          this.$forceUpdate()
+          return false
+        }
+
+        const loc = await Geolocation.checkPermissions();
         if(loc.location != 'granted'){
           this.setSnackBar(true, 'Please allow location permission', 'danger')
           this.btnvalid = false

@@ -249,9 +249,10 @@ export default {
       },
       async validateSettings(){
         const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        console.log(autoTimeResult);
-        this.showAlert({header: 'Warning!', message: autoTimeResult})
-        
+        if(autoTimeResult.value == false){
+          return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic.'})
+        }
+
         const network = await Network.getStatus();
         if(network.connectionType == 'none' ){
           console.log('Network status: ', network);
