@@ -7,6 +7,7 @@
 
 <script>
 import { IonPage, IonSpinner } from '@ionic/vue';
+import { Network } from '@capacitor/network';
 
 export default {
   components: { IonPage, IonSpinner },
