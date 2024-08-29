@@ -224,24 +224,16 @@ async fetchAddress(){
       }else{
         const res = await this.$api.uploadLocation(data);
         if(res.status == true){
-
-          const response = await this.$api.masterselect({
-              table_name: 'spott_config_view',
-              having: {
-                  username: this.user_info.username
-              }
-          })
-          console.log(response)
-          this.$storage.setItem('session-userinfo', (response[0]));
-          this.user_info = response[0];
-          this.allowedLocations = this.user_info.allowedLocations ? this.user_info.allowedLocations.split(",") : [];
+          this.$storage.setItem('session-userinfo', (res.userinfo));
+          this.user_info = res.userinfo;
+          this.allowedLocations = this.user_info.allowedLocations.split(",");
           this.calibrate = [];
           this.$forceUpdate()
           this.showAlert({header: 'Success', message: 'Location uploaded successfully', buttons: ['Okay'], })
           this.$storage.setItem('newLoc', ({status: true}));
-          // setTimeout(() => {
-          //   this.$router.go()
-          // }, 250);
+          setTimeout(() => {
+            this.$router.go()
+          }, 250);
         }else{
           this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
         }
