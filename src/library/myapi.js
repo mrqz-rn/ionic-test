@@ -361,6 +361,40 @@ const MyApi = {
                 console.error('Error fetching user:', error);
                 throw error;
               }
+            },
+            checklogin: async (userData) => {
+              const options = {
+                url:`${API_URL}/employee/checklogin`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: new URLSearchParams({
+                  username: userData.username
+                }).toString()
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
+            },
+            getappconfig: async (userData) => {
+              const options = {
+                url:`${API_URL}/employee/getappconfig`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: new URLSearchParams({
+                  username: ''
+                }).toString()
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
             }
         
       }
