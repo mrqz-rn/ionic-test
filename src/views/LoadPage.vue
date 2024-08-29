@@ -19,6 +19,8 @@ export default {
     if(net.connectionType != 'none'){
       const res = await this.$api.getappconfig();
       console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
+      // console.log(res)
+      await this.$storage.setItem('app-config', res);
       if (res.version != appVersion) {
         this.$router.push('update');
       }else{
