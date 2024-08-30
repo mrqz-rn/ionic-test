@@ -251,7 +251,7 @@ async fetchAddress(){
         buttons: [ 
           { text: 'No', role: 'cancel', handler: () => { console.log('Alert canceled') } },
           { text: 'Yes', role: 'confirm', handler: async  () => { 
-            await this.$storage.clearStorage(); 
+            // await this.$storage.clearStorage(); 
             await this.$storage.removeItem('session-userinfo');
             await this.$storage.removeItem('session-user');
             await this.$storage.removeItem('session-attlogs');

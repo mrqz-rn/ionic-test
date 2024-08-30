@@ -13,10 +13,15 @@ export default {
   components: { IonPage, IonSpinner },
   async created(){
     const user = await this.$storage.getItem('session-user');
+    const user_info = await this.$storage.getItem('session-userinfo');
     const net = await Network.getStatus();
     const appVersion = '1.2.5';
 
     if(net.connectionType != 'none'){
+      if(user_info){
+        await this.checkLogin(user_info)
+      }
+      
       const res = await this.$api.getappconfig();
       console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
       // console.log(res)
@@ -51,7 +56,30 @@ export default {
     //     this.$router.go()
     //   }, 500);
     // }
+  },
+  methods:{
+    async checkLogin(data){
+      const net = await Network.getStatus();
+      if(net.connectionType != 'none'){
+        const res = await this.$api.checklogin(data);
+    
+        if(res.requireLogin == 1){
+          console.log('require login')
+          let user = await this.$storage.getItem('session-user')
+          let userinfo = {
+            username: user.username,
+            password: user.password,
+            model: user.deviceloggedin
+          }
+          const logres = await this.$api.login(userinfo)
+          this.$storage.setItem('app-config', (logres.appconfig));
+          this.$storage.setItem('session-userinfo', (logres.userinfo));
+          this.$storage.setItem('session-user', (logres.user));
+        }
+      }
+    },
   }
+  
 }
 </script>
 

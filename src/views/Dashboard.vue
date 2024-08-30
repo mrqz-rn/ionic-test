@@ -104,7 +104,6 @@ import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { eye, book, camera, save, close, arrowUndo } from 'ionicons/icons';
-import { DatetimeSetting } from 'capacitor-datetime-setting';
 
 
 export default {
@@ -190,7 +189,7 @@ export default {
     const net = await Network.getStatus()
     if(net.connectionType != 'none'){
       // this.getPayperiod()
-
+      this.checkLogin(this.user_info)
       try{
         const data = await Geolocation.getCurrentPosition({
           enableHighAccuracy: false,  
@@ -414,6 +413,26 @@ export default {
         // this.$refs.video.srcObject = null;
         this.stream = null;
         this.webCapturing = false
+      }
+    },
+    async checkLogin(data){
+      const net = await Network.getStatus();
+      if(net.connectionType != 'none'){
+        const res = await this.$api.checklogin(data);
+    
+        if(res.requireLogin == 1){
+          console.log('require login')
+          let user = await this.$storage.getItem('session-user')
+          let userinfo = {
+            username: user.username,
+            password: user.password,
+            model: user.deviceloggedin
+          }
+          const logres = await this.$api.login(userinfo)
+          this.$storage.setItem('app-config', (logres.appconfig));
+          this.$storage.setItem('session-userinfo', (logres.userinfo));
+          this.$storage.setItem('session-user', (logres.user));
+        }
       }
     },
     async getAttlogs(){
@@ -713,14 +732,14 @@ export default {
   },
 
   async validateSettings(){
-        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        if(autoTimeResult.value == false){
-          this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
-          this.btnvalid = false
-          this.settings = false
-          this.$forceUpdate()
-          return false
-        }
+        // const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        // if(autoTimeResult.value == false){
+        //   this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
+        //   this.btnvalid = false
+        //   this.settings = false
+        //   this.$forceUpdate()
+        //   return false
+        // }
 
         const loc = await Geolocation.checkPermissions();
         if(loc.location != 'granted'){

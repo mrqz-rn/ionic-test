@@ -15,6 +15,11 @@
               style="text-align: left !important" class="custom">
               <IonInputPasswordToggle slot="end"></IonInputPasswordToggle>
             </IonInput>
+            <div class="d-flex justify-start py-2 px-1">
+              <ion-checkbox v-model="remember" label-placement="end">Remember me</ion-checkbox>
+
+            </div>
+
             <IonButton  @click="login()" class="mt-4" expand="full" shape="round" size="large">LOG IN</IonButton>
           </div>
         </div>
@@ -25,7 +30,7 @@
 
 <script>
 import { 
-  IonPage, IonContent, IonHeader, IonButton, IonToolbar,
+  IonPage, IonContent, IonHeader, IonButton, IonToolbar,IonCheckbox,
   IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle,
   IonChip, IonIcon, IonAvatar, IonImg, IonThumbnail,
   IonMenu, IonMenuButton, IonMenuToggle, IonSplitPane, IonTitle, IonLabel,
@@ -39,11 +44,10 @@ import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { Camera } from '@capacitor/camera';
-import { DatetimeSetting } from 'capacitor-datetime-setting';
 
 export default {
   components: {
-    IonPage, IonContent, IonHeader, IonButton, IonToolbar,
+    IonPage, IonContent, IonHeader, IonButton, IonToolbar,IonCheckbox,
     IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle,
     IonChip, IonIcon, IonAvatar, IonImg, IonThumbnail,
     IonMenu, IonMenuButton, IonMenuToggle, IonSplitPane, IonTitle, IonLabel,
@@ -69,6 +73,7 @@ export default {
           loc: '',
           settings: {},
           isonWeb: false,
+          remember: false,
         }
     },
     async created(){
@@ -77,7 +82,13 @@ export default {
       if(!['android', 'ios'].includes(deviceInfo.platform)){
         this.isonWeb = true
       }
-      
+      let rem = await this.$storage.getItem('session-remember');
+      if(rem){
+        this.remember = true
+        this.logindata.username = rem.username;
+        this.logindata.password = rem.password;
+      }
+      // await this.$storage.getItem('app-config');
       this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
       this.device.model = deviceInfo.model;
       this.device.identifier = info.identifier;
@@ -123,6 +134,7 @@ export default {
         }
       }
       this.checkperms()
+      
     },
     methods: {
       async checkperms(){
@@ -143,7 +155,11 @@ export default {
       async login(){
         const loading = await loadingController.create({ message: 'Please Wait a moment...', translucent: true });
         await loading.present();
-
+        if(this.remember == true){
+          await this.$storage.setItem('session-remember', (this.logindata));
+        }else{
+          await this.$storage.removeItem('session-remember');
+        }
         try{
         const data = await Geolocation.getCurrentPosition({
             enableHighAccuracy: false,  
@@ -248,10 +264,10 @@ export default {
         return response.status
       },
       async validateSettings(){
-        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        if(autoTimeResult.value == false){
-          return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic.'})
-        }
+        // const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        // if(autoTimeResult.value == false){
+        //   return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic.'})
+        // }
 
         const network = await Network.getStatus();
         if(network.connectionType == 'none' ){
@@ -341,5 +357,10 @@ ion-button {
   }
   ion-label.white{
     --color: rgb(255, 255, 255) !important;
+  }
+  ion-checkbox{
+    --border-color: white;
+    --border-radius: 4px;
+    --size: 20px;
   }
 </style>
