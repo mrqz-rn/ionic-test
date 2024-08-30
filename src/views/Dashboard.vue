@@ -5,8 +5,7 @@
       position="top" :is-open="snackbar.status"  @didDismiss="snackbar.status = false"
       :message="snackbar.message"
     ></ion-toast>
-    <ion-content class="ion-padding pa-2"  v-if="webCapturing == false"> 
-     
+    <ion-content class="ion-padding pa-2"> 
         <div class="pa-3 pt-6">
             <IonCard class="px-4 pt-4 pb-1 mb-2" color="dark" style="border-radius: 25px;" >
                 <ion-card-title class="date pt-2">SPOTT</ion-card-title>

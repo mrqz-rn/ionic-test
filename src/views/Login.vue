@@ -144,24 +144,24 @@ export default {
         const loading = await loadingController.create({ message: 'Please Wait a moment...', translucent: true });
         await loading.present();
 
-        // try{
-        // const data = await Geolocation.getCurrentPosition({
-        //     enableHighAccuracy: false,  
-        //     timeout: 2500,            
-        //     maximumAge: Infinity
-        //   });
-        //   if(!data){
-        //     // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-        //     await loading.dismiss();
-        //     this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
-        //     return
-        //   }
-        // }catch(err){
-        //   // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-        //   this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
-        //   await loading.dismiss();
-        //   return  
-        // }
+        try{
+        const data = await Geolocation.getCurrentPosition({
+            enableHighAccuracy: false,  
+            timeout: 2500,            
+            maximumAge: Infinity
+          });
+          if(!data){
+            // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
+            await loading.dismiss();
+            this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
+            return
+          }
+        }catch(err){
+          // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
+          this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
+          await loading.dismiss();
+          return  
+        }
 
         let valid = null;
         valid = await this.validateSettings()
