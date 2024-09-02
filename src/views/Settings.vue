@@ -238,11 +238,7 @@ async fetchAddress(){
           this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
         }
       }
-      
       this.calibrate = [];
-    },
-    checkLocs(){
-
     },
     async logout(){
       const alert = await alertController.create({

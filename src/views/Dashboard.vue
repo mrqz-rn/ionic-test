@@ -104,7 +104,7 @@ import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { eye, book, camera, save, close, arrowUndo } from 'ionicons/icons';
-
+import { DatetimeSetting } from 'capacitor-datetime-setting';
 
 export default {
   components: {
@@ -600,7 +600,7 @@ export default {
             photo_data = await this.openCam()
             if(photo_data.status == false){
               this.dtrbusy = false;
-              // await loading.dismiss();
+              await loading.dismiss();
               return this.showAlert({header: 'Warning!', message: 'Image capture failed. Please try again.'})
             }
           
@@ -732,14 +732,14 @@ export default {
   },
 
   async validateSettings(){
-        // const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        // if(autoTimeResult.value == false){
-        //   this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
-        //   this.btnvalid = false
-        //   this.settings = false
-        //   this.$forceUpdate()
-        //   return false
-        // }
+        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        if(autoTimeResult.value == false){
+          this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
+          this.btnvalid = false
+          this.settings = false
+          this.$forceUpdate()
+          return false
+        }
 
         const loc = await Geolocation.checkPermissions();
         if(loc.location != 'granted'){
@@ -984,14 +984,14 @@ export default {
 
 <style scoped>
 .time{
-  font-size: 6.2vh;
+  font-size: 6vh;
   font-weight: 600;
   color: black;
   text-align: center;
 }
 
 .date{
-  font-size: 3vh;
+  font-size: 2.8vh;
   font-weight: 600;
   color: black;
   text-align: center;

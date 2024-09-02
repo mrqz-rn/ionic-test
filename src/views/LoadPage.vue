@@ -1,8 +1,7 @@
 <template>
-    <ion-page style="display: flex; justify-content: center; align-items: center;">
-      <ion-spinner name="circles"></ion-spinner>
+    <ion-page style="display: flex; justify-content: center; align-items: center; background-color: whitesmoke;">
+      <ion-spinner color="dark" name="circles"></ion-spinner>
     </ion-page>
-
 </template>
 
 <script>
@@ -12,20 +11,19 @@ import { Network } from '@capacitor/network';
 export default {
   components: { IonPage, IonSpinner },
   async created(){
-    const user = await this.$storage.getItem('session-user');
     const user_info = await this.$storage.getItem('session-userinfo');
     const net = await Network.getStatus();
-    const appVersion = '1.2.5';
-
+    const appVersion = '1.2.6';
+    const user = await this.$storage.getItem('session-user');
     if(net.connectionType != 'none'){
       if(user_info){
         await this.checkLogin(user_info)
       }
-      
+      // if online check for update
       const res = await this.$api.getappconfig();
       console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
-      // console.log(res)
       await this.$storage.setItem('app-config', res);
+
       if (res.version != appVersion) {
         this.$router.push('update');
       }else{
@@ -36,6 +34,7 @@ export default {
         }
       }
     }else{
+      // for offline
       if(user){
         this.$router.push('dashboard');
       }else{
@@ -43,28 +42,13 @@ export default {
       }
     }
 
-    // try {
-    //   const user = await this.$storage.getItem('session-user');
-    //   if(user == null){
-    //     setTimeout(() => { this.$router.push('login') }, 500);
-    //   }else{
-    //     setTimeout(() => { this.$router.push('dashboard') }, 500);
-    //   }
-    // } catch (error) {
-    //   console.log(error)
-    //   setTimeout(() => {
-    //     this.$router.go()
-    //   }, 500);
-    // }
   },
   methods:{
     async checkLogin(data){
       const net = await Network.getStatus();
       if(net.connectionType != 'none'){
         const res = await this.$api.checklogin(data);
-    
-        if(res.requireLogin == 1){
-          console.log('require login')
+        if(res.updateConfig == 1){
           let user = await this.$storage.getItem('session-user')
           let userinfo = {
             username: user.username,
@@ -72,9 +56,14 @@ export default {
             model: user.deviceloggedin
           }
           const logres = await this.$api.login(userinfo)
-          this.$storage.setItem('app-config', (logres.appconfig));
-          this.$storage.setItem('session-userinfo', (logres.userinfo));
-          this.$storage.setItem('session-user', (logres.user));
+          await this.$storage.setItem('app-config', (logres.appconfig));
+          await this.$storage.setItem('session-userinfo', (logres.userinfo));
+          await this.$storage.setItem('session-user', (logres.user));
+        }
+        if(res.forceLogout == 1){
+          await this.$storage.removeItem('session-userinfo');
+          await this.$storage.removeItem('session-user');
+          await this.$storage.removeItem('session-attlogs');
         }
       }
     },

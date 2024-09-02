@@ -44,6 +44,7 @@ import { Device } from '@capacitor/device';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { Camera } from '@capacitor/camera';
+import { DatetimeSetting } from 'capacitor-datetime-setting';
 
 export default {
   components: {
@@ -264,10 +265,10 @@ export default {
         return response.status
       },
       async validateSettings(){
-        // const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        // if(autoTimeResult.value == false){
-        //   return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic.'})
-        // }
+        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        if(autoTimeResult.value == false){
+          return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic.'})
+        }
 
         const network = await Network.getStatus();
         if(network.connectionType == 'none' ){
@@ -361,6 +362,6 @@ ion-button {
   ion-checkbox{
     --border-color: white;
     --border-radius: 4px;
-    --size: 20px;
+    /* --size: 16px; */
   }
 </style>
