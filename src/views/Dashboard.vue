@@ -160,11 +160,7 @@ export default {
         timestamp: new Date().toLocaleTimeString()
       },
       requireNet: false,
-      settings: false,
-
-      stream: null,
-      image: null,
-      webCapturing: false
+      settings: false, 
     }
   },
   beforeCreate(){
@@ -177,7 +173,6 @@ export default {
     const info = await Device.getId();
     const deviceInfo = await Device.getInfo();
     
-  
     this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
     this.device.model = deviceInfo.model;
     this.device.identifier = info.identifier;
@@ -186,14 +181,19 @@ export default {
     this.session_user = await this.$storage.getItem('session-user');
     this.user_info = await this.$storage.getItem('session-userinfo');
     this.app_config = await this.$storage.getItem('app-config');
+    if(this.session_user == null || this.user_info == null){
+      this.$router.push('login');
+    }
+    console.log(this.session_user)
+
     const net = await Network.getStatus()
     if(net.connectionType != 'none'){
       // this.getPayperiod()
       this.checkLogin(this.user_info)
       try{
         const data = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: false,  
-          timeout: 2500,            
+          enableHighAccuracy: true,  
+          timeout: 10000,            
           maximumAge: Infinity
         });
       }catch(err){
@@ -317,8 +317,8 @@ export default {
             }
             
             const data = await Geolocation.getCurrentPosition({
-              enableHighAccuracy: false,  
-              timeout: 2500,            
+              enableHighAccuracy: true,  
+              timeout: 10000,            
               maximumAge: Infinity
             });
 
@@ -370,51 +370,6 @@ export default {
     },
   },
   methods:{
-    async startCamera() {
-      this.image = null
-      try {
-        this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        this.$refs.video.srcObject = this.stream;
-      } catch (error) {
-        console.error('Error accessing the camera:', error);
-      }
-    },
-    retakeImage(){
-      this.image = null
-      if (this.stream) {
-        const tracks = this.stream.getTracks();
-        tracks.forEach(track => track.stop());
-        // this.$refs.video.srcObject = null;
-        this.stream = null;
-      }
-      this.startCamera()
-      this.$forceUpdate()
-    },
-    captureImage() {
-      if (this.$refs.video.srcObject) {
-        const canvas = this.$refs.canvas;
-        const context = canvas.getContext('2d');
-        context.drawImage(this.$refs.video, 0, 0, canvas.width, canvas.height);
-      
-        this.image = canvas.toDataURL('image/png');
-
-      }
-    },
-    saveCapture() {
-      const event = new CustomEvent('imageCaptured');
-      document.dispatchEvent(event);
-      this.stopCamera()
-      this.webCapturing = false
-    },
-    stopCamera() {
-      if (this.stream) {
-        const tracks = this.stream.getTracks();
-        tracks.forEach(track => track.stop());
-        // this.$refs.video.srcObject = null;
-        this.stream = null;
-        this.webCapturing = false
-      }
-    },
     async checkLogin(data){
       const net = await Network.getStatus();
       if(net.connectionType != 'none'){
@@ -595,19 +550,15 @@ export default {
         }
       }else{
         // VALIDATE IMAGECAPTURE
-        if(this.user_info.imageCapture == '1'){
-         
+        if(this.user_info.imageCapture == '1'){  
             photo_data = await this.openCam()
             if(photo_data.status == false){
               this.dtrbusy = false;
               await loading.dismiss();
               return this.showAlert({header: 'Warning!', message: 'Image capture failed. Please try again.'})
             }
-          
         }
       }
-
-
       // SAVE DATA
       let data_log = {};
       data_log.id = this.generateUniqueId();
@@ -732,6 +683,7 @@ export default {
   },
 
   async validateSettings(){
+      try {
         const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
         if(autoTimeResult.value == false){
           this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
@@ -740,7 +692,15 @@ export default {
           this.$forceUpdate()
           return false
         }
-
+      } catch (error) {
+        this.setSnackBar(true, 'Unable to validate your datetime settings', 'danger')
+        this.btnvalid = false
+        this.settings = false
+        this.$forceUpdate()
+        return false
+      }
+        
+      try {
         const loc = await Geolocation.checkPermissions();
         if(loc.location != 'granted'){
           this.setSnackBar(true, 'Please allow location permission', 'danger')
@@ -748,7 +708,15 @@ export default {
           this.settings = false
           this.$forceUpdate()
           return false
-        }
+        }  
+      } catch (error) {
+        this.setSnackBar(true, 'Unable to validate your location settings', 'danger')
+        this.btnvalid = false
+        this.settings = false
+        this.$forceUpdate()
+        return false
+      }
+      
 
         const timezone = String(new Date()).substr(25, 8);
         if(timezone != 'GMT+0800'){
@@ -832,15 +800,15 @@ export default {
         const loc = await Geolocation.checkPermissions();
         let data = {}
         if(loc.location != 'granted'){
-          // await this.Geolocation.requestPermissions();
+          await this.Geolocation.requestPermissions();
           location_data.status = false
           location_data.err = 1
           return location_data
         }
 
         data = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: false,  
-          timeout: 5000,            
+          enableHighAccuracy: true,  
+          timeout: 10000,            
           maximumAge: Infinity
         });
         if(data){
@@ -854,11 +822,7 @@ export default {
           location_data.status = false
           location_data.err = 2
           return location_data
-        }
-      
-   
-    
-     
+        }     
     },
 
 
@@ -946,7 +910,7 @@ export default {
       this.currentDate = now.toLocaleDateString('en-CA');
 
       this.display.time = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      this.display.date = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      this.display.date = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
     },
     formattedTime(time) {
       let [hours, minutes, seconds] = time.split(':');

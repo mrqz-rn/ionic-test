@@ -248,9 +248,9 @@ async fetchAddress(){
           { text: 'No', role: 'cancel', handler: () => { console.log('Alert canceled') } },
           { text: 'Yes', role: 'confirm', handler: async  () => { 
             // await this.$storage.clearStorage(); 
+            await this.$storage.removeItem('session-attlogs');
             await this.$storage.removeItem('session-userinfo');
             await this.$storage.removeItem('session-user');
-            await this.$storage.removeItem('session-attlogs');
             
             setTimeout(() => {
               this.$router.push('login').then(() => { window.location.reload() });

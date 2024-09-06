@@ -46,6 +46,9 @@ import { Network } from '@capacitor/network';
 import { Camera } from '@capacitor/camera';
 import { DatetimeSetting } from 'capacitor-datetime-setting';
 
+
+
+
 export default {
   components: {
     IonPage, IonContent, IonHeader, IonButton, IonToolbar,IonCheckbox,
@@ -126,16 +129,17 @@ export default {
             maximumAge: Infinity
           });
         if(!data){
-          // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-          this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
+          this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
+          // this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
         }
         }catch(err){
-          // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-          this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
+          this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
+          // this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
         }
       }
       this.checkperms()
-      
+      await this.$storage.removeItem('session-attlogs');
+
     },
     methods: {
       async checkperms(){
@@ -163,20 +167,20 @@ export default {
         }
         try{
         const data = await Geolocation.getCurrentPosition({
-            enableHighAccuracy: false,  
-            timeout: 2500,            
+            enableHighAccuracy: true,  
+            timeout: 10000,            
             maximumAge: Infinity
           });
           if(!data){
-            // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
             await loading.dismiss();
-            this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
+            this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
+            // this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
             return
           }
         }catch(err){
-          // this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-          this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
           await loading.dismiss();
+          this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
+          // this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
           return  
         }
 
@@ -265,32 +269,39 @@ export default {
         return response.status
       },
       async validateSettings(){
-        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        if(autoTimeResult.value == false){
-          return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic.'})
-        }
-
-        const network = await Network.getStatus();
-        if(network.connectionType == 'none' ){
-          console.log('Network status: ', network);
-          return this.showAlert({header: 'Warning!', message: 'Please check your network settings.'})
+        try {
+          const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+          if(autoTimeResult.value == false){
+            return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
+          }
+        } catch (error) {
+          return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
         }
         
-        if(this.isonWeb == false){
-          const loc = await Geolocation.checkPermissions();
-          if(loc.location != 'granted'){
-            console.log("Location status: ", loc.location);
-            return this.showAlert({header: 'Warning!', message: 'Please enable location services.'})
+        try {
+          const network = await Network.getStatus();
+          if(network.connectionType == 'none' ){
+            return this.showAlert({header: 'Warning!', message: 'Please check your network settings.'})
           }
+        } catch (error) {
+          return this.showAlert({header: 'Warning!', message: 'Unable to validate your network settings.'})
         }
+        
+        
+       try {
+        const loc = await Geolocation.checkPermissions();
+        if(loc.location != 'granted'){
+          return this.showAlert({header: 'Warning!', message: 'Please enable location services.'})
+        }
+       } catch (error) {
+        return this.showAlert({header: 'Warning!', message: ' Unable to validate your location settings.'})
+       }
 
         const timezone = String(new Date()).substr(25, 8);
         if(timezone != 'GMT+0800'){
           console.log('Timezone: ', timezone);
           return this.showAlert({header: 'Warning!', message: 'Please set your timezone to GMT+0800.'})
         }
-
-
 
         return true
       },
@@ -364,4 +375,5 @@ ion-button {
     --border-radius: 4px;
     /* --size: 16px; */
   }
+
 </style>

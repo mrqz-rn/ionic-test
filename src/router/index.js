@@ -24,6 +24,11 @@ const routes = [
     component: () => import('../views/Update.vue'),
   },
   {
+    path: '/help',
+    name: 'help',
+    component: () => import('../views/Help.vue'),
+  },
+  {
     path: '/',
     component: Main,
     children: [
