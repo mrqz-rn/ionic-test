@@ -1,11 +1,16 @@
 <template>
 <div>
     <ion-row class="d-flex justify-space-between align-content-center mb-2">
-        <ion-col lcass size-xs="12" size-sm="7" size-md="7" size-lg="6" size-xl="5">
+        <ion-col lcass size-xs="12" size-sm="7" size-md="7" size-lg="6" size-xl="4">
             <ion-searchbar v-model="search" animated="true" placeholder="Search"></ion-searchbar>
         </ion-col>
-        <ion-col lcass size-xs="12" size-sm="4" size-md="4" size-lg="3" size-xl="3" >
-            <ion-button @click="uploadModal()" class="mt-3" expand="full" shape="round" id="custom-success">Uploading</ion-button>
+
+
+        <ion-col class="" size-xs="12" size-sm="4" size-md="3" size-lg="3" size-xl="3" >
+            <div class="d-flex justify-end pe-4">
+                <ion-button @click="addModal()" class="mt-3 me-2" expand="full" shape="round" color="primary">Add</ion-button>
+                <ion-button @click="uploadModal()" class="mt-3" expand="full" shape="round" id="custom-success">Uploading</ion-button>
+            </div>
         </ion-col>
     </ion-row>
     <div style="max-height: 70vh; overflow-y: scroll;">
@@ -41,6 +46,59 @@
     </table>
     </div>
     
+    <ion-button id="add-modal" expand="block" style="display: none;"></ion-button>
+    <ion-modal id="example-modal" ref="modal4" trigger="add-modal">
+        <div class="wrapper px-4 pb-2" style="max-width: 85vw;">
+            <h3 class="d-flex justify-center py-3 black-text">ADD USER</h3>
+            <ion-row>
+                <ion-col size-xs="12" size-sm="4" size-md="4" size-lg="4" size-xl="4">
+                    <div style="overflow: hidden;" class="py-1 px-1">
+                        <ion-input v-model="userConfig.username" 
+                        label="Username" fill="outline"  label-placement="stacked" class="pb-1 darkInput"/>
+                    </div>
+                </ion-col> 
+                <ion-col size-xs="12" size-sm="8" size-md="8" size-lg="8" size-xl="8" >
+                    <div style="overflow: hidden;" class="pt-1 px-1">
+                        <ion-input v-model="userConfig.fullName"
+                        label="Name" fill="outline"  label-placement="stacked" class="pb-1 darkInput"/>
+                    </div>
+                </ion-col> 
+                <ion-col size-xs="6" size-sm="4" size-md="3" size-lg="3" size-xl="3" >
+                    <ion-checkbox v-model="userConfig.geoFenceMode"
+                    class="pt-2" label-placement="end">Geo Fence</ion-checkbox>
+                </ion-col>
+                <ion-col size-xs="6" size-sm="4" size-md="3" size-lg="3" size-xl="3" >
+                    <ion-checkbox v-model="userConfig.imageCapture"
+                    class="pt-2" label-placement="end">Image Capture</ion-checkbox>
+                </ion-col>
+                <ion-col size-xs="12" size-sm="4" size-md="3" size-lg="3" size-xl="3" >
+                    <ion-checkbox v-model="userConfig.calibrateStatus"
+                    class="pt-2" label-placement="end">Calibrate Status</ion-checkbox>
+                </ion-col>
+                <ion-col size-xs="12" size-sm="12" size-md="3" size-lg="3" size-xl="3" >
+                    <!-- <ion-input v-model="userConfig.modules"
+                    label="Modules" fill="outline"  label-placement="stacked" class="pb-1 darkInput"/> -->
+                </ion-col>
+
+                <ion-col size-xs="12" size-sm="12" size-md="4" size-lg="4" size-xl="4" >
+                    <div class="pe-2" style="overflow: hidden;">
+                        <ion-input v-model="userConfig.noOfLocations"
+                        label="No of Location" fill="outline"  label-placement="stacked" class="pt-2 darkInput"/>
+                    </div>
+                </ion-col>
+                <ion-col size-xs="12" size-sm="12" size-md="4" size-lg="4" size-xl="4" >
+                    <div class="pe-2" style="overflow: hidden;">
+                        <ion-input v-model="userConfig.modules"
+                        label="Modules" fill="outline"  label-placement="stacked" class="pt-2 darkInput"/>
+                    </div>
+                </ion-col>
+            </ion-row>  
+            <ion-button class="pt-2" expand="full" color="primary" shape="round">Submit</ion-button>
+
+        </div>
+    </ion-modal>
+
+
     <!-- EDIT MODAL -->
     <ion-button id="edit-modal" expand="block" style="display: none;"></ion-button>
     <ion-modal id="example-modal" ref="modal1" trigger="edit-modal">
@@ -529,7 +587,19 @@ export default {
             });
             await alert.present();
         },
+        async addModal(){
+            this.userConfig = {}
+            this.userConfig.geoFenceMode = true
+            this.userConfig.imageCapture = true
+            this.userConfig.calibrateStatus = false
+            this.userConfig.noOfLocations = 1
+            this.userConfig.modules = '1,2,3,4'
 
+            const btn = document.getElementById('add-modal');
+            if (btn) {
+                btn.click();
+            }
+        },
         // ------------------------------------------------
         async editModal(data){
             this.userConfig = {}
@@ -649,7 +719,7 @@ export default {
             }
         },
         closeModal(){
-            const modals = ['modal1', 'modal2', 'modal3'];
+            const modals = ['modal1', 'modal2', 'modal3','modal4'];
             modals.forEach(modal => {
                 this.$refs[modal].$el.dismiss();
             });

@@ -1,6 +1,6 @@
 <template>
     <ion-page style="display: flex; justify-content: center; align-items: center;">
-      <ion-spinner name="circles"></ion-spinner>
+      <ion-spinner name="circles" color="dark"></ion-spinner>
     </ion-page>
 
 </template>
@@ -14,9 +14,9 @@ export default {
     try {
       const user = await this.$storage.getItem('session-user');
       if(user == null){
-        setTimeout(() => { this.$router.push('login') }, 500);
+        setTimeout(() => { this.$router.push('login') }, 1000000);
       }else{
-        setTimeout(() => { this.$router.push('dashboard') }, 500);
+        setTimeout(() => { this.$router.push('dashboard') }, 1000000);
       }
     } catch (error) {
       console.log(error)
