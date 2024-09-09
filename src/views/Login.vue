@@ -46,9 +46,6 @@ import { Network } from '@capacitor/network';
 import { Camera } from '@capacitor/camera';
 import { DatetimeSetting } from 'capacitor-datetime-setting';
 
-
-
-
 export default {
   components: {
     IonPage, IonContent, IonHeader, IonButton, IonToolbar,IonCheckbox,
@@ -81,6 +78,8 @@ export default {
         }
     },
     async created(){
+      console.log( await this.$storage.getItem('session-attlogs'));
+
       const info = await Device.getId();
       const deviceInfo = await Device.getInfo();
       if(!['android', 'ios'].includes(deviceInfo.platform)){
@@ -203,9 +202,9 @@ export default {
         try {
           this.$api.login(data).then( async (response) => {
           if(response.status == true){
-            this.$storage.setItem('app-config', (response.appconfig));
-            this.$storage.setItem('session-userinfo', (response.userinfo));
-            this.$storage.setItem('session-user', (response.user));
+            await this.$storage.setItem('app-config', (response.appconfig));
+            await this.$storage.setItem('session-userinfo', (response.userinfo));
+            await this.$storage.setItem('session-user', (response.user));
             const pp = await this.$api.getpayperiod(response.user)
             if(pp.status == true){
               this.$storage.setItem('session-payperiod', (pp.payperiod));
@@ -269,14 +268,14 @@ export default {
         return response.status
       },
       async validateSettings(){
-        try {
-          const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-          if(autoTimeResult.value == false){
-            return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
-          }
-        } catch (error) {
-          return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
-        }
+        // try {
+        //   const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        //   if(autoTimeResult.value == false){
+        //     return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
+        //   }
+        // } catch (error) {
+        //   return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
+        // }
         
         try {
           const network = await Network.getStatus();

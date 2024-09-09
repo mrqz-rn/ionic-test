@@ -7,10 +7,7 @@
 <script>
 
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
-import { useBackButton, useIonRouter } from '@ionic/vue';
 import { alertController } from '@ionic/vue';
-import { Device } from '@capacitor/device';
-import { WebView } from '@capacitor/core';
 
 
 export default {
@@ -28,8 +25,6 @@ export default {
     }
   },
   async created(){
-    // const info = await Device.getId();
-    // const deviceInfo = await Device.getInfo();
     this.$storage.initStorage();
   },
   mounted(){

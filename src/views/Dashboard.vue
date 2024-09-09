@@ -180,11 +180,15 @@ export default {
    
     this.session_user = await this.$storage.getItem('session-user');
     this.user_info = await this.$storage.getItem('session-userinfo');
-    this.app_config = await this.$storage.getItem('app-config');
     if(this.session_user == null || this.user_info == null){
-      this.$router.push('login');
+      setTimeout(() => {
+        this.$router.push('login');
+      }, 500);
     }
     console.log(this.session_user)
+
+    this.app_config = await this.$storage.getItem('app-config');
+ 
 
     const net = await Network.getStatus()
     if(net.connectionType != 'none'){
@@ -641,6 +645,8 @@ export default {
           if(attlogs.length > 0 && this.uploadOffline == false){
             this.uploadOffline = true
             await this.offlineUpload(attlogs)
+
+            // await this.offlineUpload(attlogs)
           }
         }
         this.checking = false
@@ -648,57 +654,74 @@ export default {
     async offlineUpload(data) {
     const loading = await loadingController.create({ message: 'Uploading offline logs...', translucent: true });
     await loading.present();
+    try {
+      for (const element of data) {
+        element.isLive = this.user_info.isLive;
+          const check = await this.$api.checktrx(element);
 
-    for (const element of data) {
-      element.isLive = this.user_info.isLive;
-        const check = await this.$api.checktrx(element);
+          if (check.status == true && check.data == '0') {
+          try {
+              let result = await this.upload_log(element);
 
-        if (check.status == true && check.data == '0') {
-        try {
-            let result = await this.upload_log(element);
+              if (result.status == true && result.message == '') {
+                element.upload_status = 1;
+                await this.$storage.updateAttlogs(element);
+              } else if (result.status == true && result.message == 'duplicate') {
+                element.upload_status = 1;
+                await this.$storage.updateAttlogs(element);
+              }
 
-            if (result.status == true && result.message == '') {
-              element.upload_status = 1;
-              await this.$storage.updateAttlogs(element);
-            } else if (result.status == true && result.message == 'duplicate') {
-              element.upload_status = 1;
-              await this.$storage.updateAttlogs(element);
+              this.attlogs = await this.$storage.getItem('session-attlogs');
+              this.$forceUpdate();
+            } catch (error) {
+              console.error('Error uploading element:', error);
             }
-
-            this.attlogs = await this.$storage.getItem('session-attlogs');
-            this.$forceUpdate();
-          } catch (error) {
-            console.error('Error uploading element:', error);
+          }else if(check.data == '1'){
+            element.upload_status = 1;
+            await this.$storage.updateAttlogs(element);
           }
-        }else if(check.data == '1'){
-          element.upload_status = 1;
-          await this.$storage.updateAttlogs(element);
-        }
+      }
+      await this.$storage.removeItem('session-attlogs');
+      await this.$storage.setItem('session-attlogs', this.attlogs);
+      this.uploadOffline = false;
+      await loading.dismiss();
+    } catch (error) {
+      await loading.dismiss();
+
+      const alert = await alertController.create({
+        header: 'Warning',
+        message: 'Something went wrong while uploading offline logs.',
+        buttons: [ 
+          { text: 'Later', role: 'cancel', handler: () => { console.log('Alert canceled') } },
+          { text: 'Try Again', role: 'confirm', handler: () => { setTimeout(() => {
+            this.uploadOffline = false
+          }, 500 ); } },
+      ],
+      });
+      await alert.present();
+      // await this.showAlert({header: 'Error', message: 'Something went wrong while uploading offline logs', buttons: ['Okay'], })
     }
-    await this.$storage.removeItem('session-attlogs');
+   
     
-    await this.$storage.setItem('session-attlogs', this.attlogs);
-    this.uploadOffline = false;
-    await loading.dismiss();
   },
 
   async validateSettings(){
-      try {
-        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        if(autoTimeResult.value == false){
-          this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
-          this.btnvalid = false
-          this.settings = false
-          this.$forceUpdate()
-          return false
-        }
-      } catch (error) {
-        this.setSnackBar(true, 'Unable to validate your datetime settings', 'danger')
-        this.btnvalid = false
-        this.settings = false
-        this.$forceUpdate()
-        return false
-      }
+      // try {
+      //   const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+      //   if(autoTimeResult.value == false){
+      //     this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
+      //     this.btnvalid = false
+      //     this.settings = false
+      //     this.$forceUpdate()
+      //     return false
+      //   }
+      // } catch (error) {
+      //   this.setSnackBar(true, 'Unable to validate your datetime settings', 'danger')
+      //   this.btnvalid = false
+      //   this.settings = false
+      //   this.$forceUpdate()
+      //   return false
+      // }
         
       try {
         const loc = await Geolocation.checkPermissions();

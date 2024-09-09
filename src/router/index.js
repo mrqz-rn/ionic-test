@@ -81,12 +81,12 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
  
-  if(from.name == 'login' && to.name == 'home'){
-    next(false)
-  }
-  if(from.name == 'dashboard' && (to.name == 'login' || to.name == 'home')){
-    next(false)
-  }
+  // if(from.name == 'login' && to.name == 'home'){
+  //   next(false)
+  // }
+  // if(from.name == 'dashboard' && (to.name == 'login' || to.name == 'home')){
+  //   next(false)
+  // }
   next()
 })
 

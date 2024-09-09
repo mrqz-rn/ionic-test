@@ -67,7 +67,6 @@ export default {
     this.session_user = await this.$storage.getItem('session-user');
     this.user_info = await this.$storage.getItem('session-userinfo');
     this.app_config = await this.$storage.getItem('app-config');
-    console.log(this.user_info)
     this.allowedLocations = this.user_info.allowedLocations ? this.user_info.allowedLocations.split(",") : [];
     setInterval(async () => {
       await this.checkPageStatus()
@@ -129,8 +128,8 @@ async fetchAddress(){
       let loc = {}
       try {
         loc = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: false,  
-          timeout: 5000,            
+          enableHighAccuracy: true,  
+          timeout: 10000,            
           maximumAge: Infinity
         });
       } catch (error) {
@@ -171,8 +170,8 @@ async fetchAddress(){
       }
      
       data = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: false,  
-        timeout: 5000,            
+        enableHighAccuracy: true,  
+        timeout: 10000,            
         maximumAge: Infinity
       });
       if(data){
