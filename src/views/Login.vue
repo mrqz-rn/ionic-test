@@ -16,7 +16,7 @@
               <IonInputPasswordToggle slot="end"></IonInputPasswordToggle>
             </IonInput>
             <div class="d-flex justify-start py-2 px-1">
-              <ion-checkbox v-model="remember" label-placement="end">Remember me</ion-checkbox>
+              <ion-checkbox v-model="remember" label-placement="end"><span style="color: white;">Remember me</span></ion-checkbox>
 
             </div>
 
@@ -78,7 +78,16 @@ export default {
         }
     },
     async created(){
-      console.log( await this.$storage.getItem('session-attlogs'));
+      // console.log( await this.$storage.getItem('session-attlogs'));
+      // const start = performance.now();
+      // await fetch('https://example.com/smallfile.jpg');  // Download a small file
+      // const end = performance.now();
+      // const speed = (end - start); // Milliseconds to download
+      // if (speed < 500) {
+      //   console.log(`The download was fast.  ${end - start} milliseconds.`);
+      // } else {
+      //   console.log(`The download was slow. ${end - start} milliseconds.`);
+      // }
 
       const info = await Device.getId();
       const deviceInfo = await Device.getInfo();
@@ -96,46 +105,20 @@ export default {
       this.device.model = deviceInfo.model;
       this.device.identifier = info.identifier;
       const user = await this.$storage.getItem('session-user');
-      if(this.isonWeb){
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            console.log(position.coords.latitude, position.coords.longitude);
-          },
-          (error) => {
-            console.error('Geolocation error:', error.message);
-            switch(error.code) {
-              case error.PERMISSION_DENIED:
-                this.showAlert({header: 'Warning!', message: 'User denied the request for Geolocation'});
-                break;
-              case error.POSITION_UNAVAILABLE:
-                this.showAlert({header: 'Warning!', message: 'Location information is unavailable'});
-                break;
-              case error.TIMEOUT:
-                this.showAlert({header: 'Warning!', message: 'The request to get user location timed out'});
-                break;
-              case error.UNKNOWN_ERROR:
-                this.showAlert({header: 'Warning!', message: 'An unknown error occurred'});
-                break;
-            }
-          },
-          { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
-        );
-      }else{
-        try{
-          const data = await Geolocation.getCurrentPosition({
-            enableHighAccuracy: false,  
-            timeout: 2500,            
-            maximumAge: Infinity
-          });
+      try{
+        const data = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,  
+          timeout: 10000,            
+          maximumAge: Infinity
+        });
         if(!data){
           this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-          // this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
         }
-        }catch(err){
-          this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-          // this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
-        }
+      } catch (err){
+        this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
       }
+
+      
       this.checkperms()
       await this.$storage.removeItem('session-attlogs');
 
@@ -173,13 +156,11 @@ export default {
           if(!data){
             await loading.dismiss();
             this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-            // this.showAlert({header: 'Warning!', message: JSON.stringify(data)});
             return
           }
         }catch(err){
           await loading.dismiss();
           this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
-          // this.showAlert({header: 'Warning!', message: JSON.stringify(err)});
           return  
         }
 
@@ -268,14 +249,14 @@ export default {
         return response.status
       },
       async validateSettings(){
-        // try {
-        //   const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-        //   if(autoTimeResult.value == false){
-        //     return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
-        //   }
-        // } catch (error) {
-        //   return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
-        // }
+        try {
+          const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+          if(autoTimeResult.value == false){
+            return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
+          }
+        } catch (error) {
+          return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
+        }
         
         try {
           const network = await Network.getStatus();

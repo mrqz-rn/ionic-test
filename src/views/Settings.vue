@@ -221,19 +221,23 @@ async fetchAddress(){
       if(dup == true){
         this.showAlert({header: 'Warning', message: 'Location already exists', buttons: ['Okay'], })
       }else{
-        const res = await this.$api.uploadLocation(data);
-        if(res.status == true){
-          this.$storage.setItem('session-userinfo', (res.userinfo));
-          this.user_info = res.userinfo;
-          this.allowedLocations = this.user_info.allowedLocations.split(",");
-          this.calibrate = [];
-          this.$forceUpdate()
-          this.showAlert({header: 'Success', message: 'Location uploaded successfully', buttons: ['Okay'], })
-          this.$storage.setItem('newLoc', ({status: true}));
-          setTimeout(() => {
-            this.$router.go()
-          }, 250);
-        }else{
+        try {
+          const res = await this.$api.uploadLocation(data);
+          if(res.status == true){
+            this.$storage.setItem('session-userinfo', (res.userinfo));
+            this.user_info = res.userinfo;
+            this.allowedLocations = this.user_info.allowedLocations.split(",");
+            this.calibrate = [];
+            this.$forceUpdate()
+            this.showAlert({header: 'Success', message: 'Location uploaded successfully', buttons: ['Okay'], })
+            this.$storage.setItem('newLoc', ({status: true}));
+            setTimeout(() => {
+              this.$router.go()
+            }, 250);
+          }else{
+            this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
+          }
+        } catch (error) {
           this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
         }
       }

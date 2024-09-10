@@ -26,7 +26,7 @@
               <ion-spinner class="load" name="circles"></ion-spinner>
             </div>
             
-            <ion-list v-else style="height: 45vh;">
+            <ion-list v-else style="height: 45vh; overflow-y: auto;">
                 <div class="d-block" >
                   <div v-for="(data, key) in display_attlogs" :key="key" class="d-flex justify-space-between pa-2" style="border-bottom: 1px solid #3d3d3d;">
                   <ion-label class="align-self-center px-2" style="font-weight: 600; max-width: 105px;"> {{ data.trxIN.trxdate }}</ion-label>
@@ -550,7 +550,20 @@ export default {
         if(this.allowedLocations.length == 0){
           return this.showAlert({header: 'Warning!', message: 'Please configure your location.'})
         }else{
-          return this.showAlert({header: 'Warning!', message: 'You are not within the perimeter of your allowed locations.'})           
+          let dt = {
+            username: this.user_info.username,
+            trxdatedb : this.currentDate,
+            trxtime : this.currentTime,
+            longitude : location.coordinates.longitude,
+            latitude : location.coordinates.latitude,
+          }         
+          try {
+            await this.$api.uploadlog(dt);
+          } catch (error) {
+            console.log(error);
+          }
+          return this.showAlert({header: 'Warning!', message: 'You are not within the perimeter of your allowed locations.'})  
+
         }
       }else{
         // VALIDATE IMAGECAPTURE
@@ -706,22 +719,22 @@ export default {
   },
 
   async validateSettings(){
-      // try {
-      //   const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-      //   if(autoTimeResult.value == false){
-      //     this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
-      //     this.btnvalid = false
-      //     this.settings = false
-      //     this.$forceUpdate()
-      //     return false
-      //   }
-      // } catch (error) {
-      //   this.setSnackBar(true, 'Unable to validate your datetime settings', 'danger')
-      //   this.btnvalid = false
-      //   this.settings = false
-      //   this.$forceUpdate()
-      //   return false
-      // }
+      try {
+        const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+        if(autoTimeResult.value == false){
+          this.setSnackBar(true, 'Set datetime settings to automatic', 'danger')
+          this.btnvalid = false
+          this.settings = false
+          this.$forceUpdate()
+          return false
+        }
+      } catch (error) {
+        this.setSnackBar(true, 'Unable to validate your datetime settings', 'danger')
+        this.btnvalid = false
+        this.settings = false
+        this.$forceUpdate()
+        return false
+      }
         
       try {
         const loc = await Geolocation.checkPermissions();
