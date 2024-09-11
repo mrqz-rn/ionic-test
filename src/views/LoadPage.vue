@@ -33,7 +33,7 @@ export default {
 
     const user_info = await this.$storage.getItem('session-userinfo');
     const net = await Network.getStatus();
-    const appVersion = '1.2.6';
+    const appVersion = '1.2.7';
     const user = await this.$storage.getItem('session-user');
     if(net.connectionType != 'none'){
       if(user_info){

@@ -185,7 +185,6 @@ export default {
         this.$router.push('login');
       }, 500);
     }
-    console.log(this.session_user)
 
     this.app_config = await this.$storage.getItem('app-config');
  
@@ -361,7 +360,7 @@ export default {
             this.location.lat = 0
             this.location.long = 0
             this.btnvalid = false
-            this.requireNet = true
+            // this.requireNet = true
             this.setSnackBar(true, 'Location is disabled...', 'danger')
             setTimeout(() => {
               this.count += 1
@@ -380,7 +379,6 @@ export default {
         const res = await this.$api.checklogin(data);
     
         if(res.requireLogin == 1){
-          console.log('require login')
           let user = await this.$storage.getItem('session-user')
           let userinfo = {
             username: user.username,
@@ -506,18 +504,20 @@ export default {
       }
       
       let location = {}
-      if(this.location.status == true){
+
+       
+      const p3 = new Promise( async (resolve, reject) => {
+        if(this.location.status == true){
         if(this.requireNet == true){
           this.dtrbusy = false;
+          resolve(location)
           await loading.dismiss();
           return this.showAlert({header: 'Warning!', message: 'The app needs internet connection to establish your location', buttons: ['Okay']})
         }
 
-
           let time = new Date();
           let valid_timestamp = new Date().setSeconds(time.getSeconds() - 5);
           if(Math.abs(this.location.timestamp - valid_timestamp) <= 5000){
-              console.log('Valid within 5 sec');
               location = {
                 status: true,
                 coordinates: {
@@ -525,8 +525,8 @@ export default {
                   latitude: this.location.lat
                 }
               }
+              resolve(location)
           }else{
-              console.log('Invalid not within 5 sec');
               const loc = await this.getLocation();
                 if(loc.status == false){
                   this.dtrbusy = false;
@@ -538,12 +538,18 @@ export default {
                   }
                 }
                 location = loc;
+                resolve(location)
           }
       }
-       
+      });
+      await Promise.all([p3]).then(async (values) => {
+        console.log(values);
+      })
+
+
       let photo_data = null;
       // VALIDATE IF IN ALLOWED LOCATION or IF GEOFENCE IS ENABLED
-      const valid_loc = await this.checkIfWithinLocation(location.coordinates.longitude,location.coordinates.latitude)
+      const valid_loc = this.checkIfWithinLocation(location.coordinates.longitude,location.coordinates.latitude)
       if(valid_loc == false){
         this.dtrbusy = false;
         await loading.dismiss();
@@ -563,7 +569,6 @@ export default {
             console.log(error);
           }
           return this.showAlert({header: 'Warning!', message: 'You are not within the perimeter of your allowed locations.'})  
-
         }
       }else{
         // VALIDATE IMAGECAPTURE
@@ -576,6 +581,7 @@ export default {
             }
         }
       }
+
       // SAVE DATA
       let data_log = {};
       data_log.id = this.generateUniqueId();
