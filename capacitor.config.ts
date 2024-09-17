@@ -15,6 +15,14 @@ const config: CapacitorConfig = {
     CapacitorHttp: {
       enabled: true
     },
+    BackgroundRunner: {
+      label: "com.example.background.task",
+      src: "runners/background.js",
+      event: "myCustomEvent",
+      repeat: true,
+      interval: 15,
+      autoStart: true,
+    },
   }
 };
 
