@@ -249,14 +249,17 @@ export default {
         return response.status
       },
       async validateSettings(){
-        try {
-          const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-          if(autoTimeResult.value == false){
-            return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
+        if(!this.isonWeb){
+          try {
+            const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+            if(autoTimeResult.value == false){
+              return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
+            }
+          } catch (error) {
+            return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
           }
-        } catch (error) {
-          return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
         }
+       
         
         try {
           const network = await Network.getStatus();

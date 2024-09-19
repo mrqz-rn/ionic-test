@@ -22,6 +22,8 @@ import { db } from "@/firebaseConfig";
 import { getDatabase, ref, set, get,child   } from "firebase/database";
 import axios from 'axios';
 import MD5 from 'md5';
+
+
 // import { startBackgroundTask, stopBackgroundTask } from '@/backgroundRunner.js';
 
 import { IonPage,IonContent, IonImg,IonButton,IonInput,IonCard } from '@ionic/vue';
@@ -45,9 +47,10 @@ export default {
     },
 
     async created(){
-        
-        const data = await axios.get('https://spottapp.online/api/spott/test/isconn')
+        const data = await axios.get('https://ronmarquez.serv00.net/api/spott/test/isconn')
         console.log(data);
+
+
     },
 
 

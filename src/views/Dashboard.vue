@@ -6,27 +6,29 @@
       :message="snackbar.message"
     ></ion-toast>
     <ion-content class="ion-padding pa-2"> 
-        <div class="pa-3 pt-6">
-            <IonCard class="px-4 pt-4 pb-1 mb-2" color="dark" style="border-radius: 25px;" >
-                <ion-card-title class="date pt-2">SPOTT</ion-card-title>
+        <div class="pa-3 pt-4">
+            <IonCard class="px-4 pb-1 mb-2" color="dark" style="border-radius: 25px;" >
+                <ion-card-title class="date pt-4">SPOTT</ion-card-title>
                 <ion-card-content class="justify-center pa-0" >
-                  <div class="d-grid pt-2">
+                  <div class="d-grid">
                     <IonLabel class="time white-text">{{ display.time }}</IonLabel>
                     <IonLabel class="date white-text">{{ display.date }}</IonLabel>
                   </div>
-                  <div class="pt-8 ">
+                  <div class="pt-5">
                     <ion-button @click="validate()" class="main mb-4" :disabled="!btnvalid"
                     expand="full" size="large" shape="round" style="font-weight: 600;"
                     > {{ trxmodetype == '0' ? 'Time In' : 'Time Out' }}</ion-button>
                   </div>
                 </ion-card-content>
             </IonCard> 
-
+            <div v-if="user_info.isOffline == '1'" class="mb-2">
+              <ion-button @click="transferlogs()" class="" expand="full" color="primary" shape="round" :disabled="!transferbtn" >Transfer Logs ({{ transfercount }})</ion-button>
+            </div>
             <div v-if="busy == true" style="display: flex; justify-content: center; align-items: center;" :style="body(0.48)">
               <ion-spinner class="load" name="circles"></ion-spinner>
             </div>
             
-            <ion-list v-else style="height: 45vh; overflow-y: auto;">
+            <ion-list v-else :style="user_info.isOffline == '1' ? 'height: 45vh;' : 'height: 55vh;'" style="overflow: auto;">
                 <div class="d-block" >
                   <div v-for="(data, key) in display_attlogs" :key="key" class="d-flex justify-space-between pa-2" style="border-bottom: 1px solid #3d3d3d;">
                   <ion-label class="align-self-center px-2" style="font-weight: 600; max-width: 105px;"> {{ data.trxIN.trxdate }}</ion-label>
@@ -48,7 +50,6 @@
                   </div>
                 </div>
             </ion-list>
-            
         </div>
         <ion-button class="open-custom-dialog" id="open-custom-dialog" expand="block" shape="round" style="display: none;"/>
         <ion-modal id="example-modal" ref="modal" trigger="open-custom-dialog" :can-dismiss="canDismiss" >
@@ -161,6 +162,7 @@ export default {
       },
       requireNet: false,
       settings: false, 
+      isonWeb: false,
     }
   },
   beforeCreate(){
@@ -172,7 +174,9 @@ export default {
     this.busy = true
     const info = await Device.getId();
     const deviceInfo = await Device.getInfo();
-    
+    if(!['android', 'ios'].includes(deviceInfo.platform)){
+      this.isonWeb = true
+    }
     this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
     this.device.model = deviceInfo.model;
     this.device.identifier = info.identifier;
@@ -191,16 +195,14 @@ export default {
 
     const net = await Network.getStatus()
     if(net.connectionType != 'none'){
-      // this.getPayperiod()
-      this.checkLogin(this.user_info)
       try{
         const data = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,  
+          enableHighAccuracy: this.user_info.isOffline == '1' ? true : false, 
           timeout: 10000,            
           maximumAge: Infinity
         });
       }catch(err){
-        this.setSnackBar(true, 'Location is disabled...', 'danger');
+        this.setSnackBar(true, 'Cannot get location...', 'danger');
       }
     }else{
       this.payperiod = await this.$storage.getItem('session-payperiod')
@@ -256,6 +258,14 @@ export default {
         })
         return locs;
       },
+    transferbtn(){
+      let logs = this.attlogs
+      return logs.filter(e => e.upload_status == '0').length > 0
+    },
+    transfercount(){
+      let logs = this.attlogs
+      return logs.filter(e => e.upload_status == '0').length
+    }
   },
   watch:{
     currentTime: {
@@ -264,7 +274,9 @@ export default {
         if((time % 3 == 0)){
           if(this.uploadOffline == false && this.checking == false){
             this.checking = true
-            await this.checkOffline()
+            if(this.user_info.isOffline == '0'){
+              await this.checkOffline()
+            } 
           }
         }
         if(time % 2 == 0){
@@ -320,7 +332,7 @@ export default {
             }
             
             const data = await Geolocation.getCurrentPosition({
-              enableHighAccuracy: true,  
+              enableHighAccuracy: this.user_info.isOffline == '1' ? true : false,  
               timeout: 10000,            
               maximumAge: Infinity
             });
@@ -361,7 +373,7 @@ export default {
             this.location.long = 0
             this.btnvalid = false
             // this.requireNet = true
-            this.setSnackBar(true, 'Location is disabled...', 'danger')
+            this.setSnackBar(true, 'Cannot get location...', 'danger')
             setTimeout(() => {
               this.count += 1
               this.$forceUpdate()
@@ -373,23 +385,12 @@ export default {
     },
   },
   methods:{
-    async checkLogin(data){
+    async transferlogs(){
       const net = await Network.getStatus();
-      if(net.connectionType != 'none'){
-        const res = await this.$api.checklogin(data);
-    
-        if(res.requireLogin == 1){
-          let user = await this.$storage.getItem('session-user')
-          let userinfo = {
-            username: user.username,
-            password: user.password,
-            model: user.deviceloggedin
-          }
-          const logres = await this.$api.login(userinfo)
-          this.$storage.setItem('app-config', (logres.appconfig));
-          this.$storage.setItem('session-userinfo', (logres.userinfo));
-          this.$storage.setItem('session-user', (logres.user));
-        }
+      if(net.connectionType == 'none'){
+        this.showAlert({header: 'Warnig!', message: 'Transfer logs required a network connection. Please check your network settings.'})
+      }else{
+        await this.checkOffline()
       }
     },
     async getAttlogs(){
@@ -398,7 +399,6 @@ export default {
         isLive: this.user_info.isLive,
         dateFrom: '',
         dateTo: ''
-
       }
       let result = await this.$api.getattlogs(data)
       if(result.status == true){
@@ -504,16 +504,14 @@ export default {
       }
       
       let location = {}
-
-       
       const p3 = new Promise( async (resolve, reject) => {
         if(this.location.status == true){
-        if(this.requireNet == true){
-          this.dtrbusy = false;
-          resolve(location)
-          await loading.dismiss();
-          return this.showAlert({header: 'Warning!', message: 'The app needs internet connection to establish your location', buttons: ['Okay']})
-        }
+        // if(this.requireNet == true){
+        //   this.dtrbusy = false;
+        //   resolve(location)
+        //   await loading.dismiss();
+        //   return this.showAlert({header: 'Warning!', message: 'The app needs internet connection to establish your location', buttons: ['Okay']})
+        // }
 
           let time = new Date();
           let valid_timestamp = new Date().setSeconds(time.getSeconds() - 5);
@@ -616,11 +614,12 @@ export default {
       if(network.connectionType == 'wifi' || network.connectionType == 'data' || network.connectionType == 'cellular' || network.connectionType == 'unknown'){
         data_log.upload_status = 0;
         data_log.uploaded_on = '0000-00-00 00:00:00';
-
-        let response = await this.upload_log(data_log)
-        if(response.status == true){
-          data_log.upload_status = 1;
-          data_log.uploaded_on = this.currentDate + " " + this.currentTime;
+        if(this.user_info.isOffline == '0'){
+          let response = await this.upload_log(data_log)
+          if(response.status == true){
+            data_log.upload_status = 1;
+            data_log.uploaded_on = this.currentDate + " " + this.currentTime;
+          }
         }
         this.timelog(data_log)
         this.showAlert({header: 'Success!', message: 'Your DTR was uploaded successfully'})
@@ -664,8 +663,6 @@ export default {
           if(attlogs.length > 0 && this.uploadOffline == false){
             this.uploadOffline = true
             await this.offlineUpload(attlogs)
-
-            // await this.offlineUpload(attlogs)
           }
         }
         this.checking = false
@@ -704,6 +701,7 @@ export default {
       await this.$storage.setItem('session-attlogs', this.attlogs);
       this.uploadOffline = false;
       await loading.dismiss();
+      this.showAlert({header: 'Success!', message: 'Your offline logs were uploaded successfully'})
     } catch (error) {
       await loading.dismiss();
 
@@ -714,6 +712,9 @@ export default {
           { text: 'Later', role: 'cancel', handler: () => { console.log('Alert canceled') } },
           { text: 'Try Again', role: 'confirm', handler: () => { setTimeout(() => {
             this.uploadOffline = false
+            if(this.user_info.isOffline == '1'){
+              this.checkOffline()
+            }
           }, 500 ); } },
       ],
       });
@@ -725,6 +726,7 @@ export default {
   },
 
   async validateSettings(){
+    if(!this.isonWeb){
       try {
         const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
         if(autoTimeResult.value == false){
@@ -741,7 +743,7 @@ export default {
         this.$forceUpdate()
         return false
       }
-        
+    }
       try {
         const loc = await Geolocation.checkPermissions();
         if(loc.location != 'granted'){
@@ -790,7 +792,7 @@ export default {
 
         const response = await fetch(capturedPhoto.webPath);
         const blob = await response.blob();
-        const compressedBlob = await this.compressImage(blob, 0.3);
+        const compressedBlob = await this.compressImage(blob, 0.18);
         const base64String = await this.convertBlobToBase64(compressedBlob);
         data.picture = base64String
         data.status = true
@@ -801,13 +803,6 @@ export default {
 
       return data
     },
-
-  
-
-
-
-
-
 
     validateTimeIn() {
         let userinfo = this.user_info;
@@ -849,7 +844,7 @@ export default {
         }
 
         data = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,  
+          enableHighAccuracy: this.user_info.isOffline == '1' ? true : false,  
           timeout: 10000,            
           maximumAge: Infinity
         });
@@ -873,7 +868,6 @@ export default {
         return true
       }else{
         let status = 0;
-
         this.allowedLocations.forEach(e => {
           if(this.computeDistance(e.lat,e.long,lat,long) <= parseFloat(e.radius)){
             status = status + 1;
