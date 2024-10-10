@@ -78,16 +78,6 @@ export default {
         }
     },
     async created(){
-      // console.log( await this.$storage.getItem('session-attlogs'));
-      // const start = performance.now();
-      // await fetch('https://example.com/smallfile.jpg');  // Download a small file
-      // const end = performance.now();
-      // const speed = (end - start); // Milliseconds to download
-      // if (speed < 500) {
-      //   console.log(`The download was fast.  ${end - start} milliseconds.`);
-      // } else {
-      //   console.log(`The download was slow. ${end - start} milliseconds.`);
-      // }
 
       const info = await Device.getId();
       const deviceInfo = await Device.getInfo();
@@ -117,8 +107,6 @@ export default {
       } catch (err){
         this.showAlert({header: 'Warning!', message: 'Please turn on your device location or ensure you have an internet connection.'});
       }
-
-      
       this.checkperms()
       await this.$storage.removeItem('session-attlogs');
 

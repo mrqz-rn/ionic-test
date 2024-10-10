@@ -3,11 +3,11 @@
         <ion-content class="pa-4">
             <ion-card class=" pb-3 ma-3" color="dark"  style="border-radius: 25px; padding: 3vh;">
               <div class="d-flex pb-2">
-                  <ion-icon :icon="camera" size="large" style="scale: 1.2 !important; width: 65px;" class="pa-2"/>
+                  <ion-icon :icon="camera" size="large" style="scale: 1.2 !important; width: 60px;" class="py-2"/>
                   <ion-label class="px-3 align-self-center" style="font-size: 3vh; font-weight: 600;">ImageCapture: {{ user_info.imageCapture_desc }}</ion-label>
                 </div>
                 <div class="d-flex pb-2">
-                  <ion-icon :icon="location" size="large" style="scale: 1.2 !important; width:65px;" class="pa-2"/>
+                  <ion-icon :icon="location" size="large" style="scale: 1.2 !important; width: 60px;" class="py-2"/>
                   <ion-label class="px-2 align-self-center" style="font-size: 3vh; font-weight: 600;">GeoFencing: {{ user_info.geoFenceMode_desc }}</ion-label>
                 </div>
                
@@ -24,10 +24,10 @@
             <ion-list  class="mx-3" style="height: 40vh; overflow-y: auto;">
               <ion-item v-for="(loc, key) in Locations" :key="key"> 
                 <div class="d-block">
-                  <ion-label style="font-size: 2.4vh;">{{ address[key] ? address[key] : 'Searching Address....' }}</ion-label>
+                  <ion-label style="font-size: 2.2vh;">{{ address[key] ? address[key] : 'Searching Address....' }}</ion-label>
                   <div class="d-flex ">
-                    <h5 class="pe-5" style="font-size: 2vh;">Lat: {{ loc.lat }}</h5>
-                    <h5 style="font-size: 2vh;">Long: {{ loc.long }}</h5>
+                    <h5 class="pe-5" style="font-size: 1.9vh;">Lat: {{ loc.lat }}</h5>
+                    <h5 style="font-size: 1.9vh;">Long: {{ loc.long }}</h5>
                   </div>
                 </div>
               </ion-item>
@@ -71,7 +71,9 @@ export default {
     setInterval(async () => {
       await this.checkPageStatus()
     }, 1000);
-    await this.fetchAddress()
+    setInterval(async () => {
+      await this.fetchAddress()
+    }, 5000)
   },
   computed: {
     Locations(){
@@ -191,7 +193,9 @@ async fetchAddress(){
     },
 
     async uploadLocation(){
-      
+      const loading = await loadingController.create({ message: 'Please Wait a moment...', translucent: true });
+      await loading.present();
+
       let long = 0;
       let lat = 0;
 
@@ -215,38 +219,51 @@ async fetchAddress(){
           if(element.lat == data.latitude.toFixed(4) && element.long == data.longitude.toFixed(4)){
             dup = true
           }
-          
       });
 
       if(dup == true){
+        await loading.dismiss();
         this.showAlert({header: 'Warning', message: 'Location already exists', buttons: ['Okay'], })
       }else{
         try {
-          const res = await this.$api.uploadLocation(data);
+          const timeout = (ms) => new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), ms)
+          );
+          const res = await Promise.race([
+            this.$api.uploadLocation(data),
+            timeout(2500)
+          ])
           if(res.status == true){
             this.$storage.setItem('session-userinfo', (res.userinfo));
             this.user_info = res.userinfo;
             this.allowedLocations = this.user_info.allowedLocations.split(",");
             this.calibrate = [];
             this.$forceUpdate()
+            await loading.dismiss();
             this.showAlert({header: 'Success', message: 'Location uploaded successfully', buttons: ['Okay'], })
             this.$storage.setItem('newLoc', ({status: true}));
             setTimeout(() => {
               this.$router.go()
             }, 250);
           }else{
+            await loading.dismiss();
             this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
           }
         } catch (error) {
+          await loading.dismiss();
           this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
         }
       }
       this.calibrate = [];
+      await loading.dismiss();
     },
     async logout(){
+      let attlogs = await this.$storage.getItem('session-attlogs');
+      attlogs.shift();
+      let data = attlogs.filter(log => log.upload_status == '0').length;
       const alert = await alertController.create({
-        header: 'Confirm',
-        message: 'Are you sure you want to logout?',
+        header: data > 0 ? 'Warning!' : 'Confirm',
+        message: data > 0 ? 'You have unuploaded logs. Are you sure you want to logout?' : 'Are you sure you want to logout?',
         buttons: [ 
           { text: 'No', role: 'cancel', handler: () => { console.log('Alert canceled') } },
           { text: 'Yes', role: 'confirm', handler: async  () => { 

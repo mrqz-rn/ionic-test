@@ -62,14 +62,17 @@ export default {
 
         if (res.version != appVersion) {
           setTimeout(() => {
-            this.$router.push('update');
+            this.$router.push('update').then(() => { window.location.reload() });
+            // this.$router.push('update');
           }, 1000);
         }else{
           setTimeout(() => {
             if(user){
-              this.$router.push('dashboard');
+              this.$router.push('dashboard').then(() => { window.location.reload() });
+              // this.$router.push('dashboard');
             }else{
-              this.$router.push('login');
+              this.$router.push('login').then(() => { window.location.reload() });
+              // this.$router.push('login');
             }
           }, 1000);
         
@@ -81,9 +84,11 @@ export default {
         }, 500);
         setTimeout(() => {
           if(user){
-            this.$router.push('dashboard');
+            this.$router.push('dashboard').then(() => { window.location.reload() });
+            // this.$router.push('dashboard');
           }else{
-            this.$router.push('login');
+            this.$router.push('login').then(() => { window.location.reload() });
+            // this.$router.push('login');
           }
         }, 2500);
       }
@@ -92,9 +97,11 @@ export default {
       // for offline
       setTimeout(() => {
         if(user){
-          this.$router.push('dashboard');
+          this.$router.push('dashboard').then(() => { window.location.reload() });
+          // this.$router.push('dashboard');
         }else{
-          this.$router.push('login');
+          this.$router.push('login').then(() => { window.location.reload() });
+          // this.$router.push('login');
         }
       }, 1000);
      

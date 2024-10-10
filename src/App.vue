@@ -6,9 +6,9 @@
 
 <script>
 
-import { IonApp, IonRouterOutlet } from '@ionic/vue';
-import { alertController } from '@ionic/vue';
-
+import { IonApp, IonRouterOutlet, alertController } from '@ionic/vue';
+import { App } from '@capacitor/app';
+import { useBackButton, useIonRouter } from '@ionic/vue';
 
 export default {
   components: {
@@ -21,25 +21,22 @@ export default {
   },
   data(){
     return{
-      isonWeb: false,
+
     }
   },
   async created(){
     this.$storage.initStorage();
   },
   mounted(){
-   
+    let lastTimeBackPress = 0;
+    useBackButton(500, () => {
+      if (new Date().getTime() - (lastTimeBackPress || 0) < 1000) {
+        App.exitApp();
+      } else {
+        lastTimeBackPress = new Date().getTime();
+      }
+    });
   },
-  methods: {
-    async showAlert(data){
-      const alert = await alertController.create({
-        header: data.header,
-        message: data.message,
-        buttons: ['Okay'],
-      });
-      await alert.present();
-    },
-  }
 }
 </script>
 

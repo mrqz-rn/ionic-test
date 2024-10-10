@@ -57,17 +57,20 @@
             <h2 class="d-flex justify-center pt-2">Attendance Log</h2>
             <div class="pa-2 px-4 d-block" >
               <h3>Time In</h3>
-              <ion-label style="" class="px-2">
+              <ion-label style="" class="px-1">
                 <span class="pe-3">Date: {{ viewLog.trxIN.trxdate }}</span>
                 <span class="pe-3">Time: {{ formattedTime(viewLog.trxIN.trxtime) }}</span>
               </ion-label>
-              <p style="" class="px-2">Location:  {{ viewLog.trxIN.latitude + ' : ' + viewLog.trxIN.longitude }} </p>
+              <p style="" class="px-1">Location:  
+                {{ parseFloat(viewLog.trxIN.latitude).toFixed(4) + ' : ' + 
+                parseFloat(viewLog.trxIN.longitude).toFixed(4) }} </p>
               <h3>Time Out</h3>
-              <ion-label style="" class="px-2">
+              <ion-label style="" class="px-1">
                 <span class="pe-3">Date: {{ viewLog.trxOUT.trxdate || '---' }}</span>
                 <span class="pe-3">Time: {{ viewLog.trxOUT.trxtime ? formattedTime(viewLog.trxOUT.trxtime) : '---'  }}</span>
               </ion-label>
-              <p style="" class="px-2">Location:  {{ viewLog.trxOUT.latitude + ' : ' + viewLog.trxOUT.longitude }} </p>
+              <p style="" class="px-1">Location:  {{ parseFloat(viewLog.trxOUT.latitude).toFixed(4) + ' : ' + 
+                parseFloat(viewLog.trxOUT.longitude).toFixed(4) }} </p>
               <div class="d-flex justify-space-between pt-2">
                 <h3>Remarks</h3>
                 <p style=" color: #0068d1; text-decoration: underline" @click="inputrem = !inputrem">Input / Edit</p>
@@ -79,7 +82,11 @@
                 </ion-textarea>
                 <ion-button class="pt-3" expand="full" shape="" @click="saveRemarks()">Save</ion-button> 
               </div>
-              <p v-else style="" class="px-2" >{{ viewLog.trxIN.remark || '---' }}  </p>
+              <p v-else style="" class="px-1" >{{ viewLog.trxIN.remark || '---' }}  </p>
+              <!-- <ion-img 
+              :src="`http://localhost/swfs-api/${viewLog.trxIN.pathName}`" alt="No Image"
+              ></ion-img> -->
+              <!-- {{ `http://localhost/swfs-api/${viewLog.trxIN.pathName}` }} -->
               <ion-button class="pt-3" expand="full" color="medium" @click="closeModal()">Close</ion-button>
             </div>
           
@@ -94,9 +101,9 @@
 
 
 import { 
-  IonPage, IonContent, IonHeader, IonButton, IonToolbar, IonList, IonModal, modalController , IonToast,
-  IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle, IonChip, IonSpinner, IonInput, IonTextarea,
-  IonMenu, IonMenuButton, IonTitle, IonLabel, IonItem, IonButtons, alertController ,loadingController, IonIcon
+  IonPage, IonContent, IonHeader, IonButton, IonList, IonModal, modalController , IonToast,
+  IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle, IonSpinner, IonInput, IonTextarea,
+ IonLabel, IonItem, IonButtons, alertController ,loadingController, IonIcon
    
 } from '@ionic/vue';
 import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
@@ -109,13 +116,13 @@ import { DatetimeSetting } from 'capacitor-datetime-setting';
 
 export default {
   components: {
-    IonPage, IonContent, IonHeader, IonButton, IonToolbar, IonItem,IonList,IonModal,modalController,IonToast,
-    IonButtons,IonMenu,IonTitle,IonMenuButton,IonLabel, IonChip, alertController, loadingController,IonTextarea,
+    IonPage, IonContent, IonHeader, IonButton, IonItem,IonList,IonModal,modalController,IonToast,
+    IonButtons,IonLabel, alertController, loadingController,IonTextarea,
     IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle,IonSpinner, IonInput, IonIcon
   },
   data(){
     return{
-      eye, book,camera, save,close,arrowUndo,
+      eye,book,camera,save,close,arrowUndo, // icons variables
       screen: {
         height: window.screen.height,
         width: window.screen.width
@@ -186,7 +193,7 @@ export default {
     this.user_info = await this.$storage.getItem('session-userinfo');
     if(this.session_user == null || this.user_info == null){
       setTimeout(() => {
-        this.$router.push('login');
+        this.$router.push('login').then(() => { window.location.reload() });
       }, 500);
     }
 
@@ -204,6 +211,15 @@ export default {
       }catch(err){
         this.setSnackBar(true, 'Cannot get location...', 'danger');
       }
+      try {
+        let swfskey = await this.$storage.getItem('swfskey')
+        let swfs = await this.$api.swfslogin('')
+        swfskey = swfs.key
+        await this.$storage.setItem('swfskey', (swfskey));
+      } catch (error) {
+        console.log(error)
+      }
+      
     }else{
       this.payperiod = await this.$storage.getItem('session-payperiod')
     }
@@ -216,39 +232,33 @@ export default {
       await this.getAttlogs()
     }
 
-    
-    this.busy = false
-    setTimeout(() => {
-      this.count++
-    }, 2000);
 
+    this.busy = false
+    setTimeout(() => { this.count++ }, 2000);
   },
   computed:{
+
     display_attlogs(){
       const attlogs = this.attlogs;
-      let result = [];
-      let setTrx = {}
-      if(attlogs.length == 0) return result
-      attlogs.forEach((transaction, id) => {
-        if (transaction.trxmode == "0") {  // IN
-          setTrx.trxIN = transaction
-        } else if (transaction.trxmode == "1" && setTrx.trxIN) {  // OUT
-          setTrx.trxOUT = transaction
-          result.push(setTrx);
+      if(attlogs.length == 0) return []
+      let result = [], setTrx = {}
+      attlogs.forEach((t, i) => {
+        if (t.trxmode == "0") {
+          setTrx.trxIN = t
+        } else if (setTrx.trxIN) {
+          setTrx.trxOUT = t
+          result.push(setTrx)
           setTrx = {}
         }
       });
-      if(attlogs[attlogs.length - 1].trxmode == "0" && setTrx.trxIN){
-        setTrx.trxOUT = {
-          trxmode: "1",
-          trxdate: '',
-          trxtime: '',
-        }
+      if(setTrx.trxIN){
+        setTrx.trxOUT = { trxmode: "1", trxdate: '', trxtime: '' }
         result.push(setTrx)
       }
-      this.$forceUpdate()
       return result.reverse()
     },
+
+
     allowedLocations(){
         let loc =  this.user_info.allowedLocations ? this.user_info.allowedLocations.split(",") : [];
         let locs = [];
@@ -390,6 +400,7 @@ export default {
       if(net.connectionType == 'none'){
         this.showAlert({header: 'Warnig!', message: 'Transfer logs required a network connection. Please check your network settings.'})
       }else{
+        this.uploadOffline = false
         await this.checkOffline()
       }
     },
@@ -515,7 +526,7 @@ export default {
 
           let time = new Date();
           let valid_timestamp = new Date().setSeconds(time.getSeconds() - 5);
-          if(Math.abs(this.location.timestamp - valid_timestamp) <= 5000){
+          if(Math.abs(this.location.timestamp - valid_timestamp) <= 7500){
               location = {
                 status: true,
                 coordinates: {
@@ -593,6 +604,8 @@ export default {
       data_log.latitude = location.coordinates.latitude;
       data_log.platform = `${this.device.model}=>${this.device.identifier}`,
       data_log.picture = photo_data != null ? photo_data.picture : '';
+      data_log.fileName = photo_data != null ? photo_data.fileName : '';
+      data_log.pathName = photo_data != null ? photo_data.pathName : '';
       // data_log.picture = this.test_image;
       data_log.remark = this.remarks;
       data_log.datetime = this.currentDate + " " + this.currentTime;
@@ -670,8 +683,32 @@ export default {
     async offlineUpload(data) {
     const loading = await loadingController.create({ message: 'Uploading offline logs...', translucent: true });
     await loading.present();
+
     try {
       for (const element of data) {
+        if(element.picture != 'UPLOADED'){
+          const response = await fetch(element.picture);
+          const blob = await response.blob();
+          const compressedBlob = await this.compressImage(blob, 0.8);
+          const base64String = await this.convertBlobToBase64(compressedBlob);
+          let imageFile = base64String;
+          
+          let swfskey = await this.$storage.getItem('swfskey')
+          const blobfile = await this.dataUrlToBlob(imageFile);
+          let config = {
+            path_folder: 'uploads/spott/images/' + this.session_user.username,
+            allowed_types: 'jpg|jpeg|png',
+            max_size: 1500000,
+            TOKEN: swfskey,
+            docs: blobfile
+          }
+          let upload = await this.$api.fileUpload(config);
+          if(upload.status == true){
+            element.picture = "UPLOADED"
+            element.fileName = upload.data.upload.file_name
+            element.pathName = upload.data.upload.path
+          }
+        }
         element.isLive = this.user_info.isLive;
           const check = await this.$api.checktrx(element);
 
@@ -776,7 +813,10 @@ export default {
         this.$forceUpdate()
         return true
   },
-
+  async dataUrlToBlob(dataUrl) {
+      const res = await fetch(dataUrl);
+      return await res.blob();
+    },
     async openCam(){
       let data = {
         status: false,
@@ -784,21 +824,46 @@ export default {
       }
       try {
         const capturedPhoto = await Camera.getPhoto({
-          resultType: CameraResultType.Uri,
+          resultType: CameraResultType.DataUrl,
           source: CameraSource.Camera,
           direction: CameraDirection.Front,
           // quality: 80
         });
 
-        const response = await fetch(capturedPhoto.webPath);
+        const response = await fetch(capturedPhoto.dataUrl);
         const blob = await response.blob();
-        const compressedBlob = await this.compressImage(blob, 0.18);
+        const compressedBlob = await this.compressImage(blob, 0.3);
         const base64String = await this.convertBlobToBase64(compressedBlob);
-        data.picture = base64String
+
+        let imageFile = base64String;
+        
+        let swfskey = await this.$storage.getItem('swfskey')
+        const blobfile = await this.dataUrlToBlob(imageFile);
+        let config = {
+          path_folder: 'uploads/spott/images/' + this.session_user.username,
+          allowed_types: 'jpg|jpeg|png',
+          max_size: 1500000,
+          TOKEN: swfskey,
+          docs: blobfile
+        }
+        const net = await Network.getStatus();
+        if(net.connectionType != 'none'){ 
+          let upload = await this.$api.fileUpload(config);
+          if(upload.status == true){
+            data.picture = "UPLOADED"
+            data.fileName = upload.data.upload.file_name
+            data.pathName = upload.data.upload.path
+          }
+        } else{
+          data.picture = base64String
+          data.fileName = '',
+          data.pathName = ''
+        }
         data.status = true
       } catch (error) {
         data.status = false
         data.picture = error
+        console.log('error', error);
       }
 
       return data
@@ -914,13 +979,28 @@ export default {
         reader.onload = (event) => {
           const img = new Image();
           img.src = event.target.result;
-
           img.onload = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
+            let originalWidth = img.width;
+            let originalHeight = img.height;
+            let maxSize = 650;  
+            
+            let newWidth, newHeight;
+
+            if (originalWidth > originalHeight) {  // Landscape
+                let scaleFactor = maxSize / originalWidth;
+                newWidth = maxSize;
+                newHeight = parseInt(originalHeight * scaleFactor);
+            } else {  // Portrait or square
+                let scaleFactor = maxSize / originalHeight;
+                newHeight = maxSize;
+                newWidth = parseInt(originalWidth * scaleFactor);
+            }
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
             canvas.toBlob((compressedBlob) => {
               resolve(compressedBlob);

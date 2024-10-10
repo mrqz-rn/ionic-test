@@ -23,11 +23,11 @@ const routes = [
     name: 'update',
     component: () => import('../views/Update.vue'),
   },
-  {
-    path: '/help',
-    name: 'help',
-    component: () => import('../views/Help.vue'),
-  },
+  // {
+  //   path: '/help',
+  //   name: 'help',
+  //   component: () => import('../views/Help.vue'),
+  // },
   {
     path: '/',
     component: Main,
@@ -78,15 +78,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
-
 router.beforeEach(async (to, from, next) => {
- 
-  // if(from.name == 'login' && to.name == 'home'){
-  //   next(false)
-  // }
-  // if(from.name == 'dashboard' && (to.name == 'login' || to.name == 'home')){
-  //   next(false)
-  // }
   next()
 })
 

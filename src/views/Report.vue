@@ -1,7 +1,12 @@
 <template>
     <IonPage>
       <ion-content class="ion-padding">
-        <h2 class="px-4 pt-3" id="title">DTR ATTLOGS</h2>
+        <div class="d-flex justify-space-between">
+          <h2 class="px-4 pt-3" id="title">DTR ATTLOGS</h2> 
+          <ion-checkbox v-if="user_info.isAdmin == '1'" v-model="isLive" class="align-self-center px-4 pt-3" 
+          label-placement="start"><span style="color: black;">isLive</span></ion-checkbox>
+        </div>
+      
         <div class="pa-4 pb-2 pt-3">
 
           <div class="d-flex" style="gap: 10px;">
@@ -26,10 +31,9 @@
               </thead>
               <tbody >
                 <tr v-for="(data, key) in attlogs" :key="key">
-                  <td class="text-center">{{ data.EMPNAME }}</td>
+                  <td class=""><p class="ellipsis">{{ data.EMPNAME }}</p></td>
                   <td class="text-center  ">
                      {{ formattedTime(data.trxtime) }}
-                   
                     <b :style="'color: ' + (data.trxmode == '1' ? '#12358c' : '#128c33')">{{ (data.trxmode == '0' ? 'IN' : 'OUT') }}</b>
                   </td>
                   <td class="text-center">
@@ -64,11 +68,10 @@
               <p><b>Remarks: </b></p>
               <p>{{ viewlog.remark || '---' }}</p>
             </div>
-          
             <div class="d-flex justify-center py-3">
               <ion-img 
               style="width: 65vw"
-              :src="viewlog.picture" alt="No Image"
+              :src="viewlog.picture != 'UPLOADED' ?  viewlog.picture : `${swfsUrl}${viewlog.pathName}`" alt="No Image"
             ></ion-img>
             </div>
             <ion-button expand="full" color="medium" @click="closeModal()">close</ion-button>
@@ -95,7 +98,7 @@
 
 <script>
 import { IonPage, IonContent, IonButton, IonInput, IonModal, IonDatetime, IonIcon, IonImg, IonSpinner,
-  IonLabel,
+  IonLabel,IonCheckbox,
   alertController } from '@ionic/vue';
 import { eye, } from 'ionicons/icons';
 import { Network } from '@capacitor/network';
@@ -103,7 +106,7 @@ import { Device } from '@capacitor/device';
 
 export default {
   components: { IonPage, IonContent, IonButton, IonInput ,IonModal, IonDatetime, IonIcon,  IonImg, IonSpinner, 
-    IonLabel,
+    IonLabel,IonCheckbox,
     alertController },
   data(){
     return{
@@ -128,6 +131,8 @@ export default {
       viewlog: {},
       address: '',
       isonWeb: false,
+      isLive: true,
+      swfsUrl: 'http://localhost/swfs-api/'
     }
   },
   async  created(){
@@ -145,7 +150,7 @@ export default {
       this.displaydate.to = this.formatDate(pp.DATETO)
       this.modeldate.from = pp.DATEFROM
       this.modeldate.to = pp.DATETO
-      await this.getAttlogsrpt()
+      // await this.getAttlogsrpt()
     }else{
       this.modeldate.from = new Date().toLocaleDateString('en-CA');
       this.modeldate.to =  new Date().toLocaleDateString('en-CA');
@@ -172,7 +177,7 @@ export default {
       let data = {
         dept: this.user_info.departmentAccess,
         comp: this.user_info.companyAccess,
-        isLive: this.user_info.isLive,
+        isLive: this.isLive == true ? 1 : 0,
         dateFrom: this.modeldate.from != '' ? this.modeldate.from : '',
         dateTo: this.modeldate.to != '' ? this.modeldate.to : '',
       }
@@ -220,21 +225,8 @@ export default {
         longitude: long
       }
       const response = await this.$api.addressapi(data)
-      console.log(response)
       return response
     },
-
-
-
-
-
-
-
-
-
-
-
-
 
     closeModal(){
       this.$refs.modal2.$el.dismiss();
@@ -293,14 +285,12 @@ export default {
       let year = date.substring(0, 4);
       let month = date.substring(5, 7)
       let day = date.substring(8, 10)
-      // console.log(`${month}/${day}/${year}`)
       return `${month}/${day}/${year}`
     },
     dateFormat(date){
       let year = date.substring(0, 4);
       let month = date.substring(5, 7)
       let day = date.substring(8, 10)
-      // console.log(`${month}/${day}/${year}`)
       return `${year}-${month}-${day}`
     },
     async showAlert(data){
@@ -377,4 +367,14 @@ export default {
     width: 45px;
     height: 45px;
   }
+  .ellipsis {
+    text-overflow: ellipsis;
+    width: 40vw;
+    font-size: 2vh;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-bottom: 0px !important;
+    margin-bottom: 0px !important;
+  }
+
 </style>

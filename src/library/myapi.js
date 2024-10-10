@@ -1,13 +1,19 @@
 import axios from 'axios';
 import { CapacitorHttp } from '@capacitor/core';
 
-// const API_URL = 'http://192.168.0.113/api/spott'; // localhost
+// TEST
 // const API_URL = 'http://192.168.86.1/api/spott'; // localhost
-// const API_URL = 'http://209.2.5.40/api/spott'; // localhost
-const API_URL = 'http://202.2.2.89/api/spott'; // 
-// const API_URL = 'http://112.199.74.59:286/testapi/spott';
-// const API_URL = 'http://112.199.74.59:286/api/spott';
+// const DB_NAME = 'spottdb';
+// const SWFS_URL = 'http://192.168.86.1/swfs-api/';
+
+// LIVE OUTSIDE
+const API_URL = 'http://112.199.74.59:286/api/spott';
 const DB_NAME = 'spottdb';
+const SWFS_URL = 'http://112.199.74.59:286/swfs-api/';
+
+
+// const API_URL = 'http://192.168.0.113/api/spott'; // localhost
+// const API_URL = 'http://112.199.74.59:286/testapi/spott';
 // const API_URL = 'https://ronmarquez.serv00.net/api/spott';
 // const DB_NAME = 'm10857_spottdb';
 
@@ -67,7 +73,9 @@ const MyApi = {
                   longitude : userData.longitude , 
                   latitude : userData.latitude , 
                   platform : userData.platform , 
-                  picture : userData.picture , 
+                  picture : userData.picture ,
+                  fileName: userData.fileName ,
+                  pathName: userData.pathName ,
                   remark : userData.remark , 
                   upload_status : userData.upload_status , 
                   uploaded_on : userData.uploaded_on , 
@@ -287,7 +295,7 @@ const MyApi = {
             },
             masterselect: async (userData) => {
               const options = {
-                url:`${API_URL}/masterdata/masterselect`,
+                url:`${SWFS_URL}/masterdata/masterselect`,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 data: {
                   table_name: `${DB_NAME}.${userData.table_name}`,
@@ -420,6 +428,47 @@ const MyApi = {
                 throw error;
               }
             },
+            swfslogin: async (userData) => {
+              const options = {
+                url:`${SWFS_URL}/admin/login`,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: new URLSearchParams({
+                  username: '181-1',
+                  password: '6c8d32823498c08cc27ab49875fbfa7b'
+                }).toString()
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
+            },
+            fileUpload: async (userData) => {
+              const formData = new FormData();
+              formData.append('TOKEN', userData.TOKEN);
+              formData.append('path_folder', userData.path_folder);
+              formData.append('max_size', userData.max_size);
+              formData.append('docs', userData.docs, `photo_${Date.now()}.jpeg`);  // Provide a filename
+
+
+              const options = {
+                url:`http://localhost/swfs-api/employee/fileUpload`,
+                headers: { },
+                data: formData,
+              
+              }
+              
+              try {
+                const response = await CapacitorHttp.post(options);
+                return response.data;
+              } catch (error) {
+                console.error('Error fetching user:', error);
+                throw error;
+              }
+            }
       }
     }
 };
