@@ -2,27 +2,22 @@ import axios from 'axios';
 import { CapacitorHttp } from '@capacitor/core';
 
 // TEST
-const API_URL = 'http://209.2.5.40/api/spott'; // localhost
+// const API_URL = 'http://209.2.5.40/api/spott'; // localhost
 // const API_URL = 'http://192.168.86.1/api/spott'; // localhost
 // const DB_NAME = 'spottdb';
-const SWFS_URL = 'http://209.2.5.40/swfs-api';
+// const SWFS_URL = 'http://209.2.5.40/swfs-api';
 
 // LIVE OUTSIDE
-// const API_URL = 'http://112.199.74.59:286/api/spott';
-// const DB_NAME = 'spottdb';
-// const SWFS_URL = 'http://112.199.74.59:286/swfs-api/';
-
+const API_URL = 'http://112.199.74.59:286/api/spott';
+const DB_NAME = 'spottdb';
+const SWFS_URL = 'http://112.199.74.59:286/swfs-api/';
 
 // LIVE LOCAL
 // const API_URL = 'http://202.2.2.89/api/spott';
-const DB_NAME = 'spottdb';
+// const DB_NAME = 'spottdb';
 // const SWFS_URL = 'http://202.2.2.89/swfs-api/';
 
 
-
-
-// const API_URL = 'http://192.168.0.113/api/spott'; // localhost
-// const API_URL = 'http://112.199.74.59:286/testapi/spott';
 // const API_URL = 'https://ronmarquez.serv00.net/api/spott';
 // const DB_NAME = 'm10857_spottdb';
 
