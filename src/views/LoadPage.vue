@@ -1,6 +1,5 @@
 <template>
     <ion-page style="display: flex; justify-content: center; align-items: center; background-color: whitesmoke;">
-      <!-- <ion-spinner color="dark" name="circles"></ion-spinner> -->
       <div class="loader" :class="color"></div>
       <div :class="message ? 'animate__animated animate__bounceIn' : 'animate__animated animate__bounceOut' "
       style="color: black; position: absolute; bottom: 15vh;">
@@ -56,23 +55,19 @@ export default {
           this.$api.getappconfig(),
           timeout(2500)
         ])
-        // const res = await this.$api.getappconfig();
         console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
         await this.$storage.setItem('app-config', res);
 
         if (res.version != appVersion) {
           setTimeout(() => {
             this.$router.push('update').then(() => { window.location.reload() });
-            // this.$router.push('update');
           }, 1000);
         }else{
           setTimeout(() => {
             if(user){
               this.$router.push('dashboard').then(() => { window.location.reload() });
-              // this.$router.push('dashboard');
             }else{
               this.$router.push('login').then(() => { window.location.reload() });
-              // this.$router.push('login');
             }
           }, 1000);
         
@@ -85,10 +80,8 @@ export default {
         setTimeout(() => {
           if(user){
             this.$router.push('dashboard').then(() => { window.location.reload() });
-            // this.$router.push('dashboard');
           }else{
             this.$router.push('login').then(() => { window.location.reload() });
-            // this.$router.push('login');
           }
         }, 2500);
       }
@@ -98,10 +91,8 @@ export default {
       setTimeout(() => {
         if(user){
           this.$router.push('dashboard').then(() => { window.location.reload() });
-          // this.$router.push('dashboard');
         }else{
           this.$router.push('login').then(() => { window.location.reload() });
-          // this.$router.push('login');
         }
       }, 1000);
      
@@ -120,7 +111,6 @@ export default {
           timeout(2500)
         ])
         console.log(res)
-        // const res = await this.$api.checklogin(data);
         if(res.updateConfig == 1){
           let user = await this.$storage.getItem('session-user')
           let userinfo = {
@@ -139,7 +129,7 @@ export default {
           await this.$storage.removeItem('session-attlogs');
         }
       }
-    },
+    }  
   }
   
 }

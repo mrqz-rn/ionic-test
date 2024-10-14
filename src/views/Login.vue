@@ -86,15 +86,17 @@ export default {
       }
       let rem = await this.$storage.getItem('session-remember');
       if(rem){
-        this.remember = true
-        this.logindata.username = rem.username;
-        this.logindata.password = rem.password;
+        this.remember = true;
+        this.logindata = rem;
       }
       // await this.$storage.getItem('app-config');
       this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
       this.device.model = deviceInfo.model;
       this.device.identifier = info.identifier;
       const user = await this.$storage.getItem('session-user');
+
+
+      
       try{
         const data = await Geolocation.getCurrentPosition({
           enableHighAccuracy: true,  
@@ -109,24 +111,19 @@ export default {
       }
       this.checkperms()
       await this.$storage.removeItem('session-attlogs');
-
     },
+
     methods: {
-      async checkperms(){
-        
-        const loc = await Geolocation.checkPermissions();
-        if(loc.location == 'prompt' || loc.location == 'denied' || loc.location == 'prompt-with-rationale'){
-          if(!this.isonWeb){
-            await Geolocation.requestPermissions()
-          }
-        }
-        const cam = await Camera.checkPermissions()
-        if(cam.camera == 'prompt' || cam.camera == 'denied' || cam.camera == 'prompt-with-rationale'){
-          if(!this.isonWeb){
-            await Camera.requestPermissions()
-          }
-        }
+      async checkperms() {
+        const promises = [];
+        if (this.isonWeb) return;
+        promises.push(Geolocation.checkPermissions());
+        promises.push(Camera.checkPermissions());
+        const [loc, cam] = await Promise.all(promises);
+        if (loc.location != 'granted') await Geolocation.requestPermissions();
+        if (cam.camera != 'granted') await Camera.requestPermissions();
       },
+
       async login(){
         const loading = await loadingController.create({ message: 'Please Wait a moment...', translucent: true });
         await loading.present();
@@ -211,71 +208,41 @@ export default {
           await loading.dismiss();
           return this.showAlert({header: 'Warning!', message: error})
         }
-        
       },
-      async registerDevice(){
+
+      async registerDevice() {
         const alert = await alertController.create({
           header: 'Confirm',
-          message: 'Device not registered. Do you want to register it into your account?',
-          buttons: [ 
-            { text: 'No', role: 'cancel', handler: () => { console.log('Alert canceled') } },
-            { text: 'Yes', role: 'confirm', handler: () => { this.register() } },
-        ],
+          message: 'Do you want to register this device to your account?',
+          buttons: [ { text: 'No', role: 'cancel' }, { text: 'Yes', role: 'confirm', handler: this.register } ],
         });
         await alert.present();
       },
-      async register(){
-        let data = {
+
+      async register() {
+        const response = await this.$api.register({
           username: this.logindata.username,
           model: `${this.device.model}=>${this.device.identifier}`
-        }
-        const response = await this.$api.register(data);
-        console.log(response);
-        if(response.status == true){
-          this.showAlert({header: 'Success!', message: 'Device registered successfully. Please login to continue.'})
-        }
-        return response.status
+        });
+        return response.status == true
+          ? this.showAlert({header: 'Success!', message: 'Device registered successfully. Please login to continue.'})
+          : response;
       },
-      async validateSettings(){
-        if(!this.isonWeb){
-          try {
-            const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
-            if(autoTimeResult.value == false){
-              return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'})
-            }
-          } catch (error) {
-            return this.showAlert({header: 'Warning!', message: 'Unable to validate your datetime settings'})
-          }
+
+      async validateSettings() {
+        if (!this.isonWeb) {
+          const autoTimeResult = await DatetimeSetting.isAutoTimeEnabled();
+          if (autoTimeResult.value == false) return this.showAlert({header: 'Warning!', message: 'Please set your datetime settings to automatic'});
         }
-       
-        
-        try {
-          const network = await Network.getStatus();
-          if(network.connectionType == 'none' ){
-            return this.showAlert({header: 'Warning!', message: 'Please check your network settings.'})
-          }
-        } catch (error) {
-          return this.showAlert({header: 'Warning!', message: 'Unable to validate your network settings.'})
-        }
-        
-        
-       try {
+        const network = await Network.getStatus();
+        if (network.connectionType == 'none') return this.showAlert({header: 'Warning!', message: 'Please check your network settings.'});
         const loc = await Geolocation.checkPermissions();
-        if(loc.location != 'granted'){
-          return this.showAlert({header: 'Warning!', message: 'Please enable location services.'})
-        }
-       } catch (error) {
-        return this.showAlert({header: 'Warning!', message: ' Unable to validate your location settings.'})
-       }
-
+        if (loc.location != 'granted') return this.showAlert({header: 'Warning!', message: 'Please enable location services.'});
         const timezone = String(new Date()).substr(25, 8);
-        if(timezone != 'GMT+0800'){
-          console.log('Timezone: ', timezone);
-          return this.showAlert({header: 'Warning!', message: 'Please set your timezone to GMT+0800.'})
-        }
-
-        return true
+        if (timezone != 'GMT+0800') return this.showAlert({header: 'Warning!', message: 'Please set your timezone to GMT+0800.'});
+        return true;
       },
+
       async showAlert(data){
         const alert = await alertController.create({
           header: data.header,
@@ -284,6 +251,7 @@ export default {
         });
         await alert.present();
       },
+
       async showLoader(){
         const loading = await loadingController.create({
           message: 'Dismissing after 3 seconds...',
@@ -304,18 +272,13 @@ ion-button {
     --background-hover: #8d1a1a;
     --background-activated: #8d1a1a;
     --background-focused: #8d1a1a;
-
     --color: rgb(255, 255, 255);
-
     --border-radius: 50px;
     /* --border-color: #000; */
     /* --border-style: solid; */
     /* --border-width: 1px; */
-
     --box-shadow: 0 2px 6px 0 rgb(0, 0, 0, 0.25);
-
     --ripple-color: #8d1a1a;
-
     --padding-top: 10px;
     --padding-bottom: 10px;
   }

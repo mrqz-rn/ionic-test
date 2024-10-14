@@ -517,13 +517,6 @@ export default {
       let location = {}
       const p3 = new Promise( async (resolve, reject) => {
         if(this.location.status == true){
-        // if(this.requireNet == true){
-        //   this.dtrbusy = false;
-        //   resolve(location)
-        //   await loading.dismiss();
-        //   return this.showAlert({header: 'Warning!', message: 'The app needs internet connection to establish your location', buttons: ['Okay']})
-        // }
-
           let time = new Date();
           let valid_timestamp = new Date().setSeconds(time.getSeconds() - 5);
           if(Math.abs(this.location.timestamp - valid_timestamp) <= 7500){
@@ -683,30 +676,27 @@ export default {
     async offlineUpload(data) {
     const loading = await loadingController.create({ message: 'Uploading offline logs...', translucent: true });
     await loading.present();
-
+    // data.splice(0,1)
     try {
       for (const element of data) {
         if(element.picture != 'UPLOADED'){
-          const response = await fetch(element.picture);
-          const blob = await response.blob();
+          const blob = element.picture.includes('data:image/jpeg;base64') ? await this.dataUrlToBlob(element.picture) : await this.dataUrlToBlob( 'data:image/jpeg;base64,' +element.picture);
           const compressedBlob = await this.compressImage(blob, 0.8);
           const base64String = await this.convertBlobToBase64(compressedBlob);
-          let imageFile = base64String;
-          
+          const base64 = base64String.split(',')[1];
           let swfskey = await this.$storage.getItem('swfskey')
-          const blobfile = await this.dataUrlToBlob(imageFile);
           let config = {
-            path_folder: 'uploads/spott/images/' + this.session_user.username,
-            allowed_types: 'jpg|jpeg|png',
-            max_size: 1500000,
             TOKEN: swfskey,
-            docs: blobfile
+            path_folder: 'uploads/spott/images/' + this.session_user.username,
+            max_size: 1500000,
+            base64data: base64
           }
+          
           let upload = await this.$api.fileUpload(config);
           if(upload.status == true){
             element.picture = "UPLOADED"
-            element.fileName = upload.data.upload.file_name
-            element.pathName = upload.data.upload.path
+            element.fileName = upload.file_name
+            element.pathName = upload.file_path
           }
         }
         element.isLive = this.user_info.isLive;
@@ -740,8 +730,9 @@ export default {
       await loading.dismiss();
       this.showAlert({header: 'Success!', message: 'Your offline logs were uploaded successfully'})
     } catch (error) {
+      console.error('Error uploading offline logs:', error);
       await loading.dismiss();
-
+     
       const alert = await alertController.create({
         header: 'Warning',
         message: 'Something went wrong while uploading offline logs.',
@@ -813,9 +804,18 @@ export default {
         this.$forceUpdate()
         return true
   },
-  async dataUrlToBlob(dataUrl) {
-      const res = await fetch(dataUrl);
-      return await res.blob();
+    async dataUrlToBlob(dataUrl){
+      const arr = dataUrl.split(',');
+      const mimeType = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      
+      return new Blob([u8arr], { type: mimeType });
     },
     async openCam(){
       let data = {
@@ -824,35 +824,36 @@ export default {
       }
       try {
         const capturedPhoto = await Camera.getPhoto({
-          resultType: CameraResultType.DataUrl,
+          resultType: CameraResultType.Base64,
           source: CameraSource.Camera,
           direction: CameraDirection.Front,
           // quality: 80
         });
-
-        const response = await fetch(capturedPhoto.dataUrl);
-        const blob = await response.blob();
+        // const base64 = capturedPhoto.base64String;
+        const blob = await this.dataUrlToBlob('data:image/jpeg;base64,' + capturedPhoto.base64String);
         const compressedBlob = await this.compressImage(blob, 0.3);
         const base64String = await this.convertBlobToBase64(compressedBlob);
-
-        let imageFile = base64String;
-        
+        const base64 = base64String.split(',')[1];
         let swfskey = await this.$storage.getItem('swfskey')
-        const blobfile = await this.dataUrlToBlob(imageFile);
         let config = {
-          path_folder: 'uploads/spott/images/' + this.session_user.username,
-          allowed_types: 'jpg|jpeg|png',
-          max_size: 1500000,
           TOKEN: swfskey,
-          docs: blobfile
+          path_folder: 'uploads/spott/images/' + this.session_user.username,
+          max_size: 1500000,
+          base64data: base64
         }
+     
         const net = await Network.getStatus();
+        // const net = {connectionType: 'none'}
         if(net.connectionType != 'none'){ 
           let upload = await this.$api.fileUpload(config);
           if(upload.status == true){
             data.picture = "UPLOADED"
-            data.fileName = upload.data.upload.file_name
-            data.pathName = upload.data.upload.path
+            data.fileName = upload.file_name
+            data.pathName = upload.file_path
+          }else{
+            data.picture = base64String
+            data.fileName = '',
+            data.pathName = ''
           }
         } else{
           data.picture = base64String
@@ -861,6 +862,7 @@ export default {
         }
         data.status = true
       } catch (error) {
+        this.showAlert({header: 'error!', message: error, buttons: ['Okay']})
         data.status = false
         data.picture = error
         console.log('error', error);

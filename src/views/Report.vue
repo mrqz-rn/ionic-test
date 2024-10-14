@@ -132,7 +132,9 @@ export default {
       address: '',
       isonWeb: false,
       isLive: true,
-      swfsUrl: 'http://localhost/swfs-api/'
+      // swfsUrl: 'http://localhost/swfs-api/'
+      swfsUrl: 'http://202.2.2.89/swfs-api/'
+      // swfsUrl: 'http://localhost/swfs-api/'
     }
   },
   async  created(){
@@ -140,10 +142,8 @@ export default {
     if(!['android', 'ios'].includes(deviceInfo.platform)){
       this.isonWeb = true
     }
-    
     this.datepick.model = this.dateModel(new Date())
     this.user_info = await this.$storage.getItem('session-userinfo')
-    console.log(this.user_info)
     const pp = await this.$storage.getItem('session-payperiod')
     if(pp != null){
       this.displaydate.from = this.formatDate(pp.DATEFROM)
