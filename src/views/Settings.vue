@@ -87,13 +87,13 @@ export default {
   methods: {
     async fetchAddress() {
       this.address = await Promise.all(this.Locations.map(e => this.$api.addressapi({ latitude: e.lat, longitude: e.long })  ));
-      console.log(this.address)
+      // console.log(this.address)
       this.$forceUpdate();
     },
     async startCalibrate(){
       const alert = await alertController.create({
         header: 'Confirm',
-        message: 'The app will require you to have an internet connection and location access. Would you like to proceed?',
+        message: 'Internet and location access are required for calibration. Would you like to proceed?',
         buttons: [ 
           { text: 'No', role: 'cancel', handler: () => { console.log('Alert canceled') } },
           { text: 'Yes', role: 'confirm', handler: () => { this.getCalibrate() } },
@@ -103,20 +103,16 @@ export default {
     },
     async getCalibrate(){
       const network = await Network.getStatus();
-      const loading = await loadingController.create({ message: 'Please Wait a moment...', translucent: true });
+      const loading = await loadingController.create({ message: 'Calibrating...', translucent: true });
       await loading.present();
-
       if(this.user_info.isReachedMaxLocation == '1'){
         await loading.dismiss();
         return this.showAlert({header: 'Warning', message: 'You have reached maximum allowed locations.', buttons: ['Okay'], })
       }
-
-
       if(network.connectionType == 'none'){
         await loading.dismiss();
-        return this.showAlert({header: 'Warning!', message: 'Please check your network settings.'})
+        return this.showAlert({header: 'Warning!', message: 'Please connect to internet.', buttons: ['Okay'], })
       }
-     
       let loc = {}
       try {
         loc = await Geolocation.getCurrentPosition({
@@ -126,7 +122,7 @@ export default {
         });
       } catch (error) {
         await loading.dismiss();
-        this.showAlert({header: 'Warning', message: 'Please enable device location', buttons: ['Okay'], })
+        this.showAlert({header: 'Warning', message: 'Please enable device location.', buttons: ['Okay'], })
         return
       }
 
@@ -141,7 +137,7 @@ export default {
       this.$forceUpdate()
       await loading.dismiss();
       if(this.calibrate.length == 8){
-        this.showAlert({header: 'Success', message: 'Location captured successfully. Please proceed to uploading', buttons: ['Okay'], })
+        this.showAlert({header: 'Success', message: 'Location captured successfully. Please proceed to uploading.', buttons: ['Okay'], })
       }
 
     },
@@ -157,7 +153,7 @@ export default {
     },
 
     async uploadLocation() {
-      const loading = await loadingController.create({ message: 'Please Wait a moment...', translucent: true });
+      const loading = await loadingController.create({ message: 'Uploading location...', translucent: true });
       await loading.present();
 
       let long = 0;
@@ -176,7 +172,7 @@ export default {
 
       if (this.Locations.some(e => e.lat == data.latitude && e.long == data.longitude)) {
         await loading.dismiss();
-        return this.showAlert({header: 'Warning', message: 'Location already exists', buttons: ['Okay'], })
+        return this.showAlert({header: 'Warning', message: 'Location already exists.', buttons: ['Okay'], })
       }
 
       try {
@@ -188,24 +184,28 @@ export default {
           this.calibrate = [];
           this.$forceUpdate()
           await loading.dismiss();
-          this.showAlert({header: 'Success', message: 'Location uploaded successfully', buttons: ['Okay'], })
+          this.showAlert({header: 'Success', message: 'Location uploaded successfully.', buttons: ['Okay'], })
           this.$storage.setItem('newLoc', ({status: true}));
           setTimeout(() => {
             this.$router.go()
           }, 250);
         } else {
           await loading.dismiss();
-          this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
+          this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again.', buttons: ['Okay'], })
         }
       } catch (error) {
         await loading.dismiss();
-        this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again', buttons: ['Okay'], })
+        this.showAlert({header: 'Warning', message: 'Cannot connect to server. Please check your internet connection.', buttons: ['Okay'], })
       }
     },
     async logout() {
-      const attlogs = await this.$storage.getItem('session-attlogs');
+      let attlogs = await this.$storage.getItem('session-attlogs');
+      attlogs = attlogs.filter(n => n)
       const hasUnuploaded = attlogs.some(log => log.upload_status == '0');
-
+      if(hasUnuploaded){
+        this.showAlert({header: 'Warning!', message: 'Please transfer your logs first before logging out. Thank you.', buttons: ['Okay'], })
+        return
+      }
       const alert = await alertController.create({
         header: hasUnuploaded ? 'Warning!' : 'Confirm',
         message: hasUnuploaded ? 'You have unuploaded logs. Are you sure you want to logout?' : 'Are you sure you want to logout?',

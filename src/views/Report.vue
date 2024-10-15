@@ -74,13 +74,13 @@
               :src="viewlog.picture != 'UPLOADED' ?  viewlog.picture : `${swfsUrl}${viewlog.pathName}`" alt="No Image"
             ></ion-img>
             </div>
-            <ion-button expand="full" color="medium" @click="closeModal()">close</ion-button>
+            <ion-button expand="full" color="medium" shape="round" @click="closeModal()">close</ion-button>
           </div>
           
         </div>
       </ion-modal>
       <ion-button id="open-date" expand="block" style="display: none;">Date modal</ion-button>
-      <ion-modal id="example-modal" ref="modal" trigger="open-date"  :can-dismiss="datepick.canDismiss">
+      <ion-modal id="example-modal" ref="modal" trigger="open-date"  :can-dismiss="datepick.canDismiss" style="padding: 0px 30px;">
         <div class="wrapper">
           <h2 class="d-flex justify-center pt-2"></h2>
           <ion-datetime v-model="datepick.model" presentation="date" 

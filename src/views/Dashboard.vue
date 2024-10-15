@@ -69,8 +69,8 @@
                 <span class="pe-3">Date: {{ viewLog.trxOUT.trxdate || '---' }}</span>
                 <span class="pe-3">Time: {{ viewLog.trxOUT.trxtime ? formattedTime(viewLog.trxOUT.trxtime) : '---'  }}</span>
               </ion-label>
-              <p style="" class="px-1">Location:  {{ parseFloat(viewLog.trxOUT.latitude).toFixed(4) + ' : ' + 
-                parseFloat(viewLog.trxOUT.longitude).toFixed(4) }} </p>
+              <p style="" class="px-1">Location:  {{ parseFloat(viewLog.trxOUT.latitude || 0).toFixed(4) + ' : ' + 
+                parseFloat(viewLog.trxOUT.longitude  || 0).toFixed(4)  }} </p>
               <div class="d-flex justify-space-between pt-2">
                 <h3>Remarks</h3>
                 <p style=" color: #0068d1; text-decoration: underline" @click="inputrem = !inputrem">Input / Edit</p>
@@ -80,14 +80,10 @@
                 class="pt-3" label="Remarks" fill="outline"  label-placement="stacked" 
                 placeholder="(Optional)">
                 </ion-textarea>
-                <ion-button class="pt-3" expand="full" shape="" @click="saveRemarks()">Save</ion-button> 
+                <ion-button class="pt-3" expand="full" shape="round" @click="saveRemarks()">Save</ion-button> 
               </div>
               <p v-else style="" class="px-1" >{{ viewLog.trxIN.remark || '---' }}  </p>
-              <!-- <ion-img 
-              :src="`http://localhost/swfs-api/${viewLog.trxIN.pathName}`" alt="No Image"
-              ></ion-img> -->
-              <!-- {{ `http://localhost/swfs-api/${viewLog.trxIN.pathName}` }} -->
-              <ion-button class="pt-3" expand="full" color="medium" @click="closeModal()">Close</ion-button>
+              <ion-button class="pt-3" expand="full" color="medium" shape="round" @click="closeModal()">Close</ion-button>
             </div>
           
           </div>
@@ -113,6 +109,8 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { eye, book, camera, save, close, arrowUndo } from 'ionicons/icons';
 import { DatetimeSetting } from 'capacitor-datetime-setting';
+import axios from 'axios';
+
 
 export default {
   components: {
@@ -167,6 +165,7 @@ export default {
         message: '',
         timestamp: new Date().toLocaleTimeString()
       },
+      hasData: false,
       requireNet: false,
       settings: false, 
       isonWeb: false,
@@ -211,15 +210,7 @@ export default {
       }catch(err){
         this.setSnackBar(true, 'Cannot get location...', 'danger');
       }
-      try {
-        let swfskey = await this.$storage.getItem('swfskey')
-        let swfs = await this.$api.swfslogin('')
-        swfskey = swfs.key
-        await this.$storage.setItem('swfskey', (swfskey));
-      } catch (error) {
-        console.log(error)
-      }
-      
+   
     }else{
       this.payperiod = await this.$storage.getItem('session-payperiod')
     }
@@ -236,6 +227,22 @@ export default {
     this.busy = false
     setTimeout(() => { this.count++ }, 2000);
   },
+
+
+  async mounted() {
+    await this.swfsLogin();
+    setInterval(async () => {
+      const net = await Network.getStatus();
+      if (net.connectionType != 'none') {
+        await this.swfsLogin();
+        const isConn = await axios.get('https://example.com/');
+        this.hasData = isConn.data.includes('Example Domain');
+        if (!this.hasData) this.setSnackBar(true, ' No Internet Connection Detected', 'info');
+      }
+    }, 120000); // retry every 2 minutes
+  },
+
+
   computed:{
 
     display_attlogs(){
@@ -395,10 +402,28 @@ export default {
     },
   },
   methods:{
+    async swfsLogin(){
+      try {
+          let swfskey = await this.$storage.getItem('swfskey')
+          const timeout = (ms) => new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), ms)
+          );
+          const res = await Promise.race([
+            this.$api.swfslogin(''),
+            timeout(5000)
+          ])
+          let swfs = res
+          swfskey = swfs.key
+          await this.$storage.setItem('swfskey', (swfskey));
+        } catch (error) {
+          console.log(error)
+          this.setSnackBar(true, "Cannot connect to server", 'info');
+        }
+    },
     async transferlogs(){
       const net = await Network.getStatus();
       if(net.connectionType == 'none'){
-        this.showAlert({header: 'Warnig!', message: 'Transfer logs required a network connection. Please check your network settings.'})
+        this.showAlert({header: 'Warnig!', message: 'Internet access is required to proceed!'})
       }else{
         this.uploadOffline = false
         await this.checkOffline()
@@ -435,7 +460,7 @@ export default {
       const net = await Network.getStatus();
       if(data.upload_status == '1'){
         if(net.connectionType == 'none'){
-          this.showAlert({header: 'Error!', message: "Attlogs that your are trying to edit is already been saved online. This requires internet connection.", buttons: ['Okay']})
+          this.showAlert({header: 'Error!', message: "Attlogs is already been saved online. Internet access is required to proceed.", buttons: ['Okay']})
           return
         }
 
@@ -633,7 +658,7 @@ export default {
         data_log.upload_status = 0;
         data_log.uploaded_on = '0000-00-00 00:00:00';
         this.timelog(data_log)
-        this.showAlert({header: 'Warning!', message: 'Your data will be save offline and will be uploaded once there is a connection!'})
+        this.showAlert({header: 'Warning!', message: 'Attlogs will be save offline and will be uploaded once there is a connection!'})
       }
     },
     async upload_log(data){
@@ -674,8 +699,9 @@ export default {
         this.checking = false
     },
     async offlineUpload(data) {
-    const loading = await loadingController.create({ message: 'Uploading offline logs...', translucent: true });
+    const loading = await loadingController.create({ message: 'Uploading attlogs...', translucent: true });
     await loading.present();
+    data = data.filter(x => x)
     // data.splice(0,1)
     try {
       for (const element of data) {
@@ -692,7 +718,14 @@ export default {
             base64data: base64
           }
           
-          let upload = await this.$api.fileUpload(config);
+          const timeout = (ms) => new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), ms)
+          );
+          const upload = await Promise.race([
+          this.$api.fileUpload(config),
+            timeout(5000)
+          ])
+          // this.showAlert({header: 'upload!', message: JSON.stringify(upload), buttons: ['Okay']})
           if(upload.status == true){
             element.picture = "UPLOADED"
             element.fileName = upload.file_name
@@ -728,14 +761,14 @@ export default {
       await this.$storage.setItem('session-attlogs', this.attlogs);
       this.uploadOffline = false;
       await loading.dismiss();
-      this.showAlert({header: 'Success!', message: 'Your offline logs were uploaded successfully'})
+      this.showAlert({header: 'Success!', message: 'Attlogs has been uploaded successfully'})
     } catch (error) {
       console.error('Error uploading offline logs:', error);
       await loading.dismiss();
      
       const alert = await alertController.create({
         header: 'Warning',
-        message: 'Something went wrong while uploading offline logs.',
+        message: 'Please check your internet connection. Do you want to try again?',
         buttons: [ 
           { text: 'Later', role: 'cancel', handler: () => { console.log('Alert canceled') } },
           { text: 'Try Again', role: 'confirm', handler: () => { setTimeout(() => {
@@ -765,7 +798,7 @@ export default {
           return false
         }
       } catch (error) {
-        this.setSnackBar(true, 'Unable to validate your datetime settings', 'danger')
+        this.setSnackBar(true, 'Check your datetime settings', 'danger')
         this.btnvalid = false
         this.settings = false
         this.$forceUpdate()
@@ -782,7 +815,7 @@ export default {
           return false
         }  
       } catch (error) {
-        this.setSnackBar(true, 'Unable to validate your location settings', 'danger')
+        this.setSnackBar(true, 'Turn on location service', 'danger')
         this.btnvalid = false
         this.settings = false
         this.$forceUpdate()
@@ -804,6 +837,7 @@ export default {
         this.$forceUpdate()
         return true
   },
+
     async dataUrlToBlob(dataUrl){
       const arr = dataUrl.split(',');
       const mimeType = arr[0].match(/:(.*?);/)[1];
@@ -841,23 +875,36 @@ export default {
           max_size: 1500000,
           base64data: base64
         }
-     
         const net = await Network.getStatus();
         // const net = {connectionType: 'none'}
         if(net.connectionType != 'none'){ 
-          let upload = await this.$api.fileUpload(config);
-          if(upload.status == true){
-            data.picture = "UPLOADED"
-            data.fileName = upload.file_name
-            data.pathName = upload.file_path
-          }else{
+          try{
+            const timeout = (ms) => new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Request timed out')), ms)
+            );
+            const upload = await Promise.race([
+            this.$api.fileUpload(config),
+              timeout(5000)
+            ])
+            // let upload = await this.$api.fileUpload(config);
+            // this.showAlert({header: 'upload!', message: JSON.stringify(upload), buttons: ['Okay']})
+            if(upload.status == true){
+              data.picture = "UPLOADED"
+              data.fileName = upload.file_name
+              data.pathName = upload.file_path
+            }else{
+              data.picture = base64String
+              data.fileName = ''
+              data.pathName = ''
+            }
+          }catch(err){ 
             data.picture = base64String
-            data.fileName = '',
+            data.fileName = ''
             data.pathName = ''
           }
         } else{
           data.picture = base64String
-          data.fileName = '',
+          data.fileName = ''
           data.pathName = ''
         }
         data.status = true
