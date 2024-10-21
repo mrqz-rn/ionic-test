@@ -13,7 +13,7 @@ const DB_NAME = 'spottdb';
 const SWFS_URL = 'http://112.199.74.59:286/swfs-api/';
 
 // // LIVE LOCAL
-// const API_URL = 'http://202.2.2.89/api/?spott';
+// const API_URL = 'http://202.2.2.89/api/spott';
 // const DB_NAME = 'spottdb';
 // const SWFS_URL = 'http://202.2.2.89/swfs-api/';
 
@@ -43,12 +43,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
-                // console.log(response);
               } catch (error) {
-                console.error('Error fetching user:', error);
-                return error;
+                return error
               }
             },
             register: async (userData) => {
@@ -62,11 +66,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             saveattlogs: async (userData) => {
@@ -100,7 +109,13 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 if(response.status == 500){
                   let result = {
                     status: true,
@@ -112,8 +127,7 @@ const MyApi = {
                   return response.data;
                 }
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             uploadLocation: async (userData) => {
@@ -128,11 +142,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(7500)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Duplicate record:', error);
-                return error;
+                return JSON.stringify(error);
               }
             },
             getattlogs: async (userData) => {
@@ -204,11 +223,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             saveremark: async (userData) => {
@@ -225,11 +249,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(5000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             changepass: async (userData) => {
@@ -243,11 +272,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             addressapi: async (userData) => {
@@ -259,11 +293,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.request(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.get(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             checktrx: async (userData) => {
@@ -280,7 +319,13 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(5000)
+                ])
                 return response.data;
                 // console.log(response);
               } catch (error) {
@@ -290,16 +335,19 @@ const MyApi = {
             },
             gettime: async (userData) => {
               let link = 'https://worldtimeapi.org/api/timezone/Asia/Manila';
-              
               const options = {
                 url:`${link}`,
               }
-              
               try {
-                const response = await CapacitorHttp.get(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.get(options),
+                  timeout(4000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
                 throw error;
               }
             },
@@ -321,11 +369,16 @@ const MyApi = {
    
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             savedata: async (userData) => {
@@ -340,11 +393,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             deletedata: async (userData) => {
@@ -393,11 +451,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             getappconfig: async (userData) => {
@@ -410,11 +473,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             uploadlog: async (userData) => {
@@ -431,11 +499,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             swfslogin: async (userData) => {
@@ -449,11 +522,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(10000)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-                throw error;
+                return JSON.stringify(error);
               }
             },
             fileUpload: async (userData) => {
@@ -470,12 +548,16 @@ const MyApi = {
               }
               
               try {
-                const response = await CapacitorHttp.post(options);
+                const timeout = (ms) => new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Request timed out')), ms)
+                );
+                const response = await Promise.race([
+                  CapacitorHttp.post(options),
+                  timeout(7500)
+                ])
                 return response.data;
               } catch (error) {
-                console.error('Error fetching user:', error);
-
-                throw error;
+                return JSON.stringify(error);
               }
             }
       }

@@ -230,16 +230,23 @@ export default {
 
 
   async mounted() {
+    const time = await this.$api.gettime()
+    this.hasData = typeof time == 'object';
     await this.swfsLogin();
     setInterval(async () => {
       const net = await Network.getStatus();
       if (net.connectionType != 'none') {
         await this.swfsLogin();
-        const isConn = await axios.get('https://example.com/');
-        this.hasData = isConn.data.includes('Example Domain');
-        if (!this.hasData) this.setSnackBar(true, ' No Internet Connection Detected', 'info');
       }
     }, 120000); // retry every 2 minutes
+    setInterval(async () => {
+      let time = await this.$api.gettime()
+      if(typeof time == 'object'){
+        this.hasData = true
+      } else {
+        this.hasData = false
+      }
+    }, 15000); 
   },
 
 
@@ -405,25 +412,17 @@ export default {
     async swfsLogin(){
       try {
           let swfskey = await this.$storage.getItem('swfskey')
-          const timeout = (ms) => new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), ms)
-          );
-          const res = await Promise.race([
-            this.$api.swfslogin(''),
-            timeout(5000)
-          ])
-          let swfs = res
-          swfskey = swfs.key
+          const res = await this.$api.swfslogin('')
+          swfskey = res.key
           await this.$storage.setItem('swfskey', (swfskey));
         } catch (error) {
-          console.log(error)
           this.setSnackBar(true, "Cannot connect to server", 'info');
         }
     },
     async transferlogs(){
       const net = await Network.getStatus();
       if(net.connectionType == 'none'){
-        this.showAlert({header: 'Warnig!', message: 'Internet access is required to proceed!'})
+        this.showAlert({header: 'Notice', message: 'Internet access is required to proceed!'})
       }else{
         this.uploadOffline = false
         await this.checkOffline()
@@ -460,7 +459,7 @@ export default {
       const net = await Network.getStatus();
       if(data.upload_status == '1'){
         if(net.connectionType == 'none'){
-          this.showAlert({header: 'Error!', message: "Attlogs is already been saved online. Internet access is required to proceed.", buttons: ['Okay']})
+          this.showAlert({header: 'Caution', message: "Attlogs is already been saved online. Internet access is required to proceed.", buttons: ['Okay']})
           return
         }
 
@@ -581,7 +580,7 @@ export default {
         this.dtrbusy = false;
         await loading.dismiss();
         if(this.allowedLocations.length == 0){
-          return this.showAlert({header: 'Warning!', message: 'Please configure your location.'})
+          return this.showAlert({header: 'Notice', message: 'Please configure your location.'})
         }else{
           let dt = {
             username: this.user_info.username,
@@ -595,7 +594,7 @@ export default {
           } catch (error) {
             console.log(error);
           }
-          return this.showAlert({header: 'Warning!', message: 'You are not within the perimeter of your allowed locations.'})  
+          return this.showAlert({header: 'Notice!', message: 'You are not within the perimeter of your allowed locations.'})  
         }
       }else{
         // VALIDATE IMAGECAPTURE
@@ -604,7 +603,7 @@ export default {
             if(photo_data.status == false){
               this.dtrbusy = false;
               await loading.dismiss();
-              return this.showAlert({header: 'Warning!', message: 'Image capture failed. Please try again.'})
+              return this.showAlert({header: 'Notice', message: 'Image capture failed. Please try again.'})
             }
         }
       }
@@ -658,7 +657,7 @@ export default {
         data_log.upload_status = 0;
         data_log.uploaded_on = '0000-00-00 00:00:00';
         this.timelog(data_log)
-        this.showAlert({header: 'Warning!', message: 'Attlogs will be save offline and will be uploaded once there is a connection!'})
+        this.showAlert({header: 'Notice!', message: 'Attlogs will be save offline and will be uploaded once there is a connection!'})
       }
     },
     async upload_log(data){
@@ -701,8 +700,6 @@ export default {
     async offlineUpload(data) {
     const loading = await loadingController.create({ message: 'Uploading attlogs...', translucent: true });
     await loading.present();
-    data = data.filter(x => x)
-    // data.splice(0,1)
     try {
       for (const element of data) {
         if(element.picture != 'UPLOADED'){
@@ -717,19 +714,15 @@ export default {
             max_size: 1500000,
             base64data: base64
           }
-          
-          const timeout = (ms) => new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), ms)
-          );
-          const upload = await Promise.race([
-          this.$api.fileUpload(config),
-            timeout(5000)
-          ])
-          // this.showAlert({header: 'upload!', message: JSON.stringify(upload), buttons: ['Okay']})
+          const upload = await this.$api.fileUpload(config) 
           if(upload.status == true){
             element.picture = "UPLOADED"
             element.fileName = upload.file_name
             element.pathName = upload.file_path
+          }else{
+            element.picture = base64String
+            element.fileName = ''
+            element.pathName = ''
           }
         }
         element.isLive = this.user_info.isLive;
@@ -762,12 +755,11 @@ export default {
       this.uploadOffline = false;
       await loading.dismiss();
       this.showAlert({header: 'Success!', message: 'Attlogs has been uploaded successfully'})
+
     } catch (error) {
-      console.error('Error uploading offline logs:', error);
       await loading.dismiss();
-     
       const alert = await alertController.create({
-        header: 'Warning',
+        header: 'Connection Error',
         message: 'Please check your internet connection. Do you want to try again?',
         buttons: [ 
           { text: 'Later', role: 'cancel', handler: () => { console.log('Alert canceled') } },
@@ -780,10 +772,7 @@ export default {
       ],
       });
       await alert.present();
-      // await this.showAlert({header: 'Error', message: 'Something went wrong while uploading offline logs', buttons: ['Okay'], })
     }
-   
-    
   },
 
   async validateSettings(){
@@ -878,26 +867,12 @@ export default {
         const net = await Network.getStatus();
         // const net = {connectionType: 'none'}
         if(net.connectionType != 'none'){ 
-          try{
-            const timeout = (ms) => new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Request timed out')), ms)
-            );
-            const upload = await Promise.race([
-            this.$api.fileUpload(config),
-              timeout(5000)
-            ])
-            // let upload = await this.$api.fileUpload(config);
-            // this.showAlert({header: 'upload!', message: JSON.stringify(upload), buttons: ['Okay']})
-            if(upload.status == true){
-              data.picture = "UPLOADED"
-              data.fileName = upload.file_name
-              data.pathName = upload.file_path
-            }else{
-              data.picture = base64String
-              data.fileName = ''
-              data.pathName = ''
-            }
-          }catch(err){ 
+          const upload = await this.$api.fileUpload(config)
+          if(upload.status == true){
+            data.picture = "UPLOADED"
+            data.fileName = upload.file_name
+            data.pathName = upload.file_path
+          }else{
             data.picture = base64String
             data.fileName = ''
             data.pathName = ''
@@ -909,7 +884,6 @@ export default {
         }
         data.status = true
       } catch (error) {
-        this.showAlert({header: 'error!', message: error, buttons: ['Okay']})
         data.status = false
         data.picture = error
         console.log('error', error);
@@ -933,7 +907,7 @@ export default {
         let allowedTime = new Date(timeIN);
         allowedTime.setHours(allowedTime.getHours() - parseInt(appconfig.timein_allowance));
         if (currentTime < allowedTime && this.trxmodetype == '0') {
-          this.showAlert({header: 'Warning!', message: 'You can only Time-In ' + appconfig.timein_allowance + ' hour before your schedule!'});
+          this.showAlert({header: 'Notice!', message: 'You can only Time-In ' + appconfig.timein_allowance + ' hour before your schedule!'});
           return false
         } else{
           return true

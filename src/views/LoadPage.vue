@@ -48,13 +48,7 @@ export default {
       }
       // if online check for update
       try {
-        const timeout = (ms) => new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Request timed out')), ms)
-        );
-        const res = await Promise.race([
-          this.$api.getappconfig(),
-          timeout(2500)
-        ])
+        const res = await this.$api.getappconfig();
         console.log('Current Ver: ' + appVersion + ' | Latest Ver: ' + res.version);
         await this.$storage.setItem('app-config', res);
 
@@ -103,14 +97,7 @@ export default {
     async checkLogin(data){
       const net = await Network.getStatus();
       if(net.connectionType != 'none'){
-        const timeout = (ms) => new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Request timed out')), ms)
-        );
-        const res = await Promise.race([
-          this.$api.checklogin(data),
-          timeout(2500)
-        ])
-        console.log(res)
+        const res = await this.$api.checklogin(data)
         if(res.updateConfig == 1){
           let user = await this.$storage.getItem('session-user')
           let userinfo = {

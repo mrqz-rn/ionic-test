@@ -107,11 +107,11 @@ export default {
       await loading.present();
       if(this.user_info.isReachedMaxLocation == '1'){
         await loading.dismiss();
-        return this.showAlert({header: 'Warning', message: 'You have reached maximum allowed locations.', buttons: ['Okay'], })
+        return this.showAlert({header: 'Notice', message: 'You have reached maximum allowed locations.', buttons: ['Okay'], })
       }
       if(network.connectionType == 'none'){
         await loading.dismiss();
-        return this.showAlert({header: 'Warning!', message: 'Please connect to internet.', buttons: ['Okay'], })
+        return this.showAlert({header: 'Notice', message: 'Please connect to internet.', buttons: ['Okay'], })
       }
       let loc = {}
       try {
@@ -122,7 +122,7 @@ export default {
         });
       } catch (error) {
         await loading.dismiss();
-        this.showAlert({header: 'Warning', message: 'Please enable device location.', buttons: ['Okay'], })
+        this.showAlert({header: 'Notice', message: 'Please enable device location.', buttons: ['Okay'], })
         return
       }
 
@@ -172,7 +172,7 @@ export default {
 
       if (this.Locations.some(e => e.lat == data.latitude && e.long == data.longitude)) {
         await loading.dismiss();
-        return this.showAlert({header: 'Warning', message: 'Location already exists.', buttons: ['Okay'], })
+        return this.showAlert({header: 'Notice', message: 'Location already exists.', buttons: ['Okay'], })
       }
 
       try {
@@ -191,7 +191,7 @@ export default {
           }, 250);
         } else {
           await loading.dismiss();
-          this.showAlert({header: 'Warning', message: 'Something went wrong. Please try again.', buttons: ['Okay'], })
+          this.showAlert({header: 'Warning', message: 'Cannot connect to server. Please check your internet connection.', buttons: ['Okay'], })
         }
       } catch (error) {
         await loading.dismiss();
@@ -203,7 +203,7 @@ export default {
       attlogs = attlogs.filter(n => n)
       const hasUnuploaded = attlogs.some(log => log.upload_status == '0');
       if(hasUnuploaded){
-        this.showAlert({header: 'Warning!', message: 'Please transfer your logs first before logging out. Thank you.', buttons: ['Okay'], })
+        this.showAlert({header: 'Warning', message: 'Please transfer your logs first before logging out. Thank you.', buttons: ['Okay'], })
         return
       }
       const alert = await alertController.create({

@@ -166,7 +166,7 @@ export default {
           model: platform
         }
         try {
-          this.$api.login(data).then( async (response) => {
+          this.$api.login(data).then( async (response) => {            
           if(response.status == true){
             await this.$storage.setItem('app-config', (response.appconfig));
             await this.$storage.setItem('session-userinfo', (response.userinfo));
@@ -175,14 +175,12 @@ export default {
             if(pp.status == true){
               this.$storage.setItem('session-payperiod', (pp.payperiod));
             }
-         
             setTimeout(async () => {
               await loading.dismiss();
               this.$router.push('dashboard').then(() => { window.location.reload() });
             }, 1000);
            
           }else{
-
             if(response.status == false && response.userlogin == true){
             if(response.deviceRegistered == true){
               if(response.deviceValid == false){
@@ -196,7 +194,7 @@ export default {
           }else{
             await loading.dismiss();
             if(response.status == null && response.userlogin == null){
-              return this.showAlert({header: 'Warning!', message: 'An error occured. Please try again.'})
+              return this.showAlert({header: 'Warning!', message: 'Cannot connect to server. Please try again.'})
             }else{
               return this.showAlert({header: 'Warning!', message: 'Invalid username or password.'})
             }
