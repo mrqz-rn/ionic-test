@@ -109,7 +109,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { eye, book, camera, save, close, arrowUndo } from 'ionicons/icons';
 import { DatetimeSetting } from 'capacitor-datetime-setting';
-import axios from 'axios';
+import { isBase64 } from 'is-base64';
 
 
 export default {
@@ -143,7 +143,6 @@ export default {
       app_config:{},
       session_user:{},
       user_info:{},
-      payperiod: {},
       snackbar: {
         status: false,
         message: '',
@@ -198,7 +197,6 @@ export default {
 
     this.app_config = await this.$storage.getItem('app-config');
  
-
     const net = await Network.getStatus()
     if(net.connectionType != 'none'){
       try{
@@ -211,8 +209,6 @@ export default {
         this.setSnackBar(true, 'Cannot get location...', 'danger');
       }
    
-    }else{
-      this.payperiod = await this.$storage.getItem('session-payperiod')
     }
     if(await this.$storage.getItem('session-attlogs') != null){
       this.attlogs = await this.$storage.getItem('session-attlogs')
@@ -222,36 +218,11 @@ export default {
     }else{
       await this.getAttlogs()
     }
-
-
     this.busy = false
     setTimeout(() => { this.count++ }, 2000);
   },
 
-
-  async mounted() {
-    const time = await this.$api.gettime()
-    this.hasData = typeof time == 'object';
-    await this.swfsLogin();
-    setInterval(async () => {
-      const net = await Network.getStatus();
-      if (net.connectionType != 'none') {
-        await this.swfsLogin();
-      }
-    }, 120000); // retry every 2 minutes
-    setInterval(async () => {
-      let time = await this.$api.gettime()
-      if(typeof time == 'object'){
-        this.hasData = true
-      } else {
-        this.hasData = false
-      }
-    }, 15000); 
-  },
-
-
   computed:{
-
     display_attlogs(){
       const attlogs = this.attlogs;
       if(attlogs.length == 0) return []
@@ -409,16 +380,6 @@ export default {
     },
   },
   methods:{
-    async swfsLogin(){
-      try {
-          let swfskey = await this.$storage.getItem('swfskey')
-          const res = await this.$api.swfslogin('')
-          swfskey = res.key
-          await this.$storage.setItem('swfskey', (swfskey));
-        } catch (error) {
-          this.setSnackBar(true, "Cannot connect to server", 'info');
-        }
-    },
     async transferlogs(){
       const net = await Network.getStatus();
       if(net.connectionType == 'none'){
@@ -442,16 +403,7 @@ export default {
       this.attlogs = await this.$storage.getItem('session-attlogs')
       this.$forceUpdate()
     },
-    async getPayperiod(){
-      let data = {
-        username: this.session_user.username,
-      }
-      const pp = await this.$api.getpayperiod(data)
-      if(pp.status == true){
-        await this.$storage.setItem('session-payperiod', (pp.payperiod));
-        this.payperiod = pp.payperiod;
-      }
-    },
+   
     async saveRemarks(){
       let data = this.viewLog.trxIN
       data.isLive = this.user_info.isLive;
@@ -703,24 +655,26 @@ export default {
     try {
       for (const element of data) {
         if(element.picture != 'UPLOADED'){
-          const blob = element.picture.includes('data:image/jpeg;base64') ? await this.dataUrlToBlob(element.picture) : await this.dataUrlToBlob( 'data:image/jpeg;base64,' +element.picture);
-          const compressedBlob = await this.compressImage(blob, 0.8);
-          const base64String = await this.convertBlobToBase64(compressedBlob);
-          const base64 = base64String.split(',')[1];
-          let swfskey = await this.$storage.getItem('swfskey')
-          let config = {
-            TOKEN: swfskey,
-            path_folder: 'uploads/spott/images/' + this.session_user.username,
-            max_size: 1500000,
-            base64data: base64
+          const validbase64 = isBase64(element.picture,{allowMime: true})
+          let upload = {};
+          if(validbase64){
+            const blob = element.picture.includes('data:image/jpeg;base64') ? await this.dataUrlToBlob(element.picture) : await this.dataUrlToBlob( 'data:image/jpeg;base64,' +element.picture);
+            const compressedBlob = await this.compressImage(blob, 0.8);
+            const base64String = await this.convertBlobToBase64(compressedBlob);
+            let config = {
+                TOKEN: 'U1dGU1RPS0VO',
+                path_folder: 'uploads/spott/images/' + this.session_user.username,
+                max_size: 15000,
+                base64data: base64String.replace('data:image/jpeg;base64,', '')
+            }
+            upload = await this.$api.fileUpload(config)            
           }
-          const upload = await this.$api.fileUpload(config) 
           if(upload.status == true){
             element.picture = "UPLOADED"
             element.fileName = upload.file_name
             element.pathName = upload.file_path
           }else{
-            element.picture = base64String
+            // element.picture = base64String
             element.fileName = ''
             element.pathName = ''
           }
@@ -774,7 +728,7 @@ export default {
       await alert.present();
     }
   },
-
+  
   async validateSettings(){
     if(!this.isonWeb){
       try {
@@ -840,6 +794,7 @@ export default {
       
       return new Blob([u8arr], { type: mimeType });
     },
+     
     async openCam(){
       let data = {
         status: false,
@@ -852,22 +807,33 @@ export default {
           direction: CameraDirection.Front,
           // quality: 80
         });
-        // const base64 = capturedPhoto.base64String;
         const blob = await this.dataUrlToBlob('data:image/jpeg;base64,' + capturedPhoto.base64String);
         const compressedBlob = await this.compressImage(blob, 0.3);
         const base64String = await this.convertBlobToBase64(compressedBlob);
-        const base64 = base64String.split(',')[1];
-        let swfskey = await this.$storage.getItem('swfskey')
-        let config = {
-          TOKEN: swfskey,
-          path_folder: 'uploads/spott/images/' + this.session_user.username,
-          max_size: 1500000,
-          base64data: base64
-        }
+        
+        // const fileName = Math.random().toString(36).substring(2, 10) + (new Date()).getTime().toString(36) + '.jpeg';
+        // const trimmedString = base64String.replace('data:image/jpeg;base64,', '');
+        // const imageContent = atob(trimmedString);
+        // const buffer = new ArrayBuffer(imageContent.length);
+        // const view = new Uint8Array(buffer);
+
+        // for (let n = 0; n < imageContent.length; n++) {
+        //   view[n] = imageContent.charCodeAt(n);
+        // }
+        // const type = 'image/jpeg';
+        // const imgfile = new File([blob], fileName, { lastModified: new Date().getTime(), type });
+
+        // let config = {
+        //   path_folder: 'uploads/spott/images/' + this.session_user.username,
+        //   max_size: 1500000,
+        //   docs: imgfile
+        // }
         const net = await Network.getStatus();
-        // const net = {connectionType: 'none'}
         if(net.connectionType != 'none'){ 
-          const upload = await this.$api.fileUpload(config)
+          // const upload = await this.$api.fileUpload2(config)
+          const upload = {
+            status: false
+          }
           if(upload.status == true){
             data.picture = "UPLOADED"
             data.fileName = upload.file_name

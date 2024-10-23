@@ -37,7 +37,7 @@
                     <b :style="'color: ' + (data.trxmode == '1' ? '#12358c' : '#128c33')">{{ (data.trxmode == '0' ? 'IN' : 'OUT') }}</b>
                   </td>
                   <td class="text-center">
-                    <ion-button size="small" @click="viewMore(data)">
+                    <ion-button size="small" @click="viewMore(data)" shape="round">
                       <ion-icon class="px-2" :icon="eye" size="default" color="white" />
                     </ion-button>
                   </td>
@@ -88,7 +88,7 @@
           :min="datepick.type == 1 ? `` : `${new Date(modeldate.from).toLocaleDateString('en-CA')}T00:00:00`"
           :max="`${new Date().toLocaleDateString('en-CA')}T23:59:59`"/>
           <div class="pa-3">
-            <ion-button expand="full" color="medium" @click="confirmPick()">Confirm</ion-button>
+            <ion-button expand="full" color="medium" @click="confirmPick()" shape="round">Confirm</ion-button>
           </div>
         </div>
       </ion-modal>
@@ -132,24 +132,38 @@ export default {
       address: '',
       isonWeb: false,
       isLive: true,
-      // swfsUrl: 'http://localhost/swfs-api/'
-      swfsUrl: 'http://202.2.2.89/swfs-api/'
+      
+      swfsUrl: 'http://112.199.74.59:286/swfs-api/'
+      // swfsUrl: 'http://202.2.2.89/swfs-api/'
       // swfsUrl: 'http://localhost/swfs-api/'
     }
   },
   async  created(){
+    try {
+      this.user_info = await this.$storage.getItem('session-userinfo');
+      const net = await Network.getStatus()
+      if(net.connectionType != 'none'){
+        const pp = await this.$api.getpayperiod(this.user_info)
+        if(pp.status){
+          await this.$storage.setItem('session-payperiod', (pp));
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+    
     const deviceInfo = await Device.getInfo();
     if(!['android', 'ios'].includes(deviceInfo.platform)){
       this.isonWeb = true
     }
     this.datepick.model = this.dateModel(new Date())
-    this.user_info = await this.$storage.getItem('session-userinfo')
+    // this.user_info = await this.$storage.getItem('session-userinfo')
     const pp = await this.$storage.getItem('session-payperiod')
     if(pp != null){
-      this.displaydate.from = this.formatDate(pp.DATEFROM)
-      this.displaydate.to = this.formatDate(pp.DATETO)
-      this.modeldate.from = pp.DATEFROM
-      this.modeldate.to = pp.DATETO
+      this.displaydate.from = this.formatDate(pp.payperiod.DATEFROM)
+      this.displaydate.to = this.formatDate(pp.payperiod.DATETO)
+      this.modeldate.from = pp.payperiod.DATEFROM
+      this.modeldate.to = pp.payperiod.DATETO
       // await this.getAttlogsrpt()
     }else{
       this.modeldate.from = new Date().toLocaleDateString('en-CA');
@@ -158,18 +172,17 @@ export default {
       this.displaydate.to =  this.formatDate(new Date().toLocaleDateString('en-CA'))
     }
 
-
   },
   methods: {
     async getAttlogsrpt() {
       this.attlength = null
       const network = await Network.getStatus();
       if(network.connectionType == 'none' ){
-        return this.showAlert({header: 'Warning!', message: 'Please check your internet status'})
+        return this.showAlert({header: 'Notice', message: 'Please check your internet status'})
       }
 
       if(this.modeldate.from == '' || this.modeldate.to == ''){
-        return this.showAlert({header: 'Warning!', message: 'Please select date range'})
+        return this.showAlert({header: 'Notice', message: 'Please select date range'})
       }
 
       this.attlogs = []
@@ -189,35 +202,35 @@ export default {
           this.attlogs = []
         }
       } catch (error) {
-        this.showAlert({header: 'Error!', message: 'Something went wrong. Please try again.'})
+        this.showAlert({header: 'Warnig!', message: 'Cannot connect to server. Please try again later.'})
       }
       
       this.busy = false
       this.attlength = this.attlogs.length
       // const unique = [...new Set(this.attlogs.map(item => item.username))];
     },
-    formAttlogs(data){
-      let attlogs = data
-      attlogs.forEach((transaction, id) => {
-        if (transaction.trxmode == "0") {  // IN
-          setTrx.trxIN = transaction
-        } else if (transaction.trxmode == "1" && setTrx.trxIN) {  // OUT
-          setTrx.trxOUT = transaction
-          result.push(setTrx);
-          setTrx = {}
-        }
-      });
-      if(attlogs[attlogs.length - 1].trxmode == "0" && setTrx.trxIN){
-        setTrx.trxOUT = {
-          trxmode: "1",
-          trxdate: '',
-          trxtime: '',
-        }
-        result.push(setTrx)
-      }
-      this.$forceUpdate()
-      return result.reverse()
-    },
+    // formAttlogs(data){
+    //   let attlogs = data
+    //   attlogs.forEach((transaction, id) => {
+    //     if (transaction.trxmode == "0") {  // IN
+    //       setTrx.trxIN = transaction
+    //     } else if (transaction.trxmode == "1" && setTrx.trxIN) {  // OUT
+    //       setTrx.trxOUT = transaction
+    //       result.push(setTrx);
+    //       setTrx = {}
+    //     }
+    //   });
+    //   if(attlogs[attlogs.length - 1].trxmode == "0" && setTrx.trxIN){
+    //     setTrx.trxOUT = {
+    //       trxmode: "1",
+    //       trxdate: '',
+    //       trxtime: '',
+    //     }
+    //     result.push(setTrx)
+    //   }
+    //   this.$forceUpdate()
+    //   return result.reverse()
+    // },
 
     async getAddress(lat,long){
       let data  = {

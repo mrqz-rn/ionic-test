@@ -2,20 +2,21 @@ import axios from 'axios';
 import { CapacitorHttp } from '@capacitor/core';
 
 // // TEST
-// const API_URL = 'http://209.2.5.40/api/spott'; // localhost
 // const API_URL = 'http://192.168.86.1/api/spott'; // localhost
-// const DB_NAME = 'spottdb';
+// const API_URL = 'http://209.2.5.40/api/spott'; // localhost
 // const SWFS_URL = 'http://209.2.5.40/swfs-api';
+// const DB_NAME = 'spottdb';
 
-// // LIVE OUTSIDE
+
+// // // LIVE OUTSIDE
 const API_URL = 'http://112.199.74.59:286/api/spott';
-const DB_NAME = 'spottdb';
 const SWFS_URL = 'http://112.199.74.59:286/swfs-api/';
+const DB_NAME = 'spottdb';
 
 // // LIVE LOCAL
 // const API_URL = 'http://202.2.2.89/api/spott';
 // const DB_NAME = 'spottdb';
-// const SWFS_URL = 'http://202.2.2.89/swfs-api/';
+// const SWFS_URL = 'http://202.2.2.89/swfs-api';
 
 // // TEST LOCAL
 // const API_URL = 'http://202.2.2.89/testapi/spott';
@@ -228,10 +229,11 @@ const MyApi = {
                 );
                 const response = await Promise.race([
                   CapacitorHttp.post(options),
-                  timeout(10000)
+                  timeout(5000)
                 ])
                 return response.data;
               } catch (error) {
+                throw error;
                 return JSON.stringify(error);
               }
             },
@@ -327,7 +329,6 @@ const MyApi = {
                   timeout(5000)
                 ])
                 return response.data;
-                // console.log(response);
               } catch (error) {
                 console.error('Error fetching user:', error);
                 throw error;
@@ -456,11 +457,12 @@ const MyApi = {
                 );
                 const response = await Promise.race([
                   CapacitorHttp.post(options),
-                  timeout(10000)
+                  timeout(4000)
                 ])
                 return response.data;
               } catch (error) {
-                return JSON.stringify(error);
+                throw error
+                // return JSON.stringify(error);
               }
             },
             getappconfig: async (userData) => {
@@ -478,10 +480,11 @@ const MyApi = {
                 );
                 const response = await Promise.race([
                   CapacitorHttp.post(options),
-                  timeout(10000)
+                  timeout(4000)
                 ])
                 return response.data;
               } catch (error) {
+                throw error
                 return JSON.stringify(error);
               }
             },
@@ -504,7 +507,7 @@ const MyApi = {
                 );
                 const response = await Promise.race([
                   CapacitorHttp.post(options),
-                  timeout(10000)
+                  timeout(7500)
                 ])
                 return response.data;
               } catch (error) {
@@ -527,10 +530,11 @@ const MyApi = {
                 );
                 const response = await Promise.race([
                   CapacitorHttp.post(options),
-                  timeout(10000)
+                  timeout(7250)
                 ])
                 return response.data;
               } catch (error) {
+                return error
                 return JSON.stringify(error);
               }
             },
@@ -539,7 +543,7 @@ const MyApi = {
                 url:`${SWFS_URL}/employee/base64Upload`,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 data: new URLSearchParams({
-                  TOKEN: userData.TOKEN,
+                  TOKEN: 'U1dGU1RPS0VO',
                   path_folder: userData.path_folder,
                   max_size: userData.max_size,
                   base64data: userData.base64data,
@@ -555,11 +559,11 @@ const MyApi = {
                   CapacitorHttp.post(options),
                   timeout(7500)
                 ])
-                return response.data;
+                return response.data;   
               } catch (error) {
-                return JSON.stringify(error);
+                throw error
               }
-            }
+            },
       }
     }
 };
