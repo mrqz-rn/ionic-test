@@ -177,14 +177,20 @@ export default {
   },
   async created(){
     this.busy = true
-    const info = await Device.getId();
-    const deviceInfo = await Device.getInfo();
-    if(!['android', 'ios'].includes(deviceInfo.platform)){
+    if(await this.$storage.getItem('session-device') == null){
+      const info = await Device.getId();
+      const deviceInfo = await Device.getInfo();
+      this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
+      this.device.model = deviceInfo.model;
+      this.device.identifier = info.identifier;
+      this.device.platform = deviceInfo.platform
+      await this.$storage.setItem('session-device', (this.device));
+    }else{
+      this.device = await this.$storage.getItem('session-device');
+    }
+    if(!['android', 'ios'].includes(this.device.platform)){
       this.isonWeb = true
     }
-    this.device.os = getPlatforms().includes('android') ? 'android' : 'ios';
-    this.device.model = deviceInfo.model;
-    this.device.identifier = info.identifier;
 
    
     this.session_user = await this.$storage.getItem('session-user');
@@ -495,7 +501,7 @@ export default {
         if(this.location.status == true){
           let time = new Date();
           let valid_timestamp = new Date().setSeconds(time.getSeconds() - 5);
-          if(Math.abs(this.location.timestamp - valid_timestamp) <= 7500){
+          if(Math.abs(this.location.timestamp - valid_timestamp) <= 5000){
               location = {
                 status: true,
                 coordinates: {

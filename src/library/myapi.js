@@ -3,15 +3,15 @@ import { CapacitorHttp } from '@capacitor/core';
 
 // // TEST
 // const API_URL = 'http://192.168.86.1/api/spott'; // localhost
-// const API_URL = 'http://209.2.5.40/api/spott'; // localhost
-// const SWFS_URL = 'http://209.2.5.40/swfs-api';
-// const DB_NAME = 'spottdb';
+const API_URL = 'http://209.2.5.40/api/spott'; // localhost
+const SWFS_URL = 'http://209.2.5.40/swfs-api';
+const DB_NAME = 'spottdb';
 
 
 // // // LIVE OUTSIDE
-const API_URL = 'http://112.199.74.59:286/api/spott';
-const SWFS_URL = 'http://112.199.74.59:286/swfs-api/';
-const DB_NAME = 'spottdb';
+// const API_URL = 'http://112.199.74.59:286/api/spott';
+// const SWFS_URL = 'http://112.199.74.59:286/swfs-api/';
+// const DB_NAME = 'spottdb';
 
 // // LIVE LOCAL
 // const API_URL = 'http://202.2.2.89/api/spott';
