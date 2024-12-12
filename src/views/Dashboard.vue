@@ -322,6 +322,17 @@ export default {
             }
           }
           try {
+            if(this.user_info.disableLocation == '1'){
+              this.btnvalid = true
+              this.location.status = true
+              this.location.lat = 0
+              this.location.long = 0
+              setTimeout(() => {
+                this.count += 1
+                this.$forceUpdate()
+              }, 2000);
+              return true
+            }
             if(this.location.status == false && this.location.lat == 0 && this.location.long == 0){
               this.setSnackBar(true, 'Establishing  your location...', 'info')
             }
@@ -887,7 +898,14 @@ export default {
         coordinates: null,
         err: null
       }
-
+      if(this.user_info.disableLocation == '1'){
+        location_data.status = true
+          location_data.coordinates = {
+            latitude: 0,
+            longitude: 0
+          }
+          return location_data
+      }
         const loc = await Geolocation.checkPermissions();
         let data = {}
         if(loc.location != 'granted'){
@@ -918,7 +936,7 @@ export default {
 
 
     checkIfWithinLocation(long,lat){
-      if(this.user_info.geoFenceMode == '0'){
+      if(this.user_info.geoFenceMode == '0' || this.user_info.disableLocation == '1'){
         return true
       }else{
         let status = 0;
