@@ -115,7 +115,7 @@ const MyApi = {
                 );
                 const response = await Promise.race([
                   CapacitorHttp.post(options),
-                  timeout(10000)
+                  timeout(20000)
                 ])
                 if(response.status == 500){
                   let result = {

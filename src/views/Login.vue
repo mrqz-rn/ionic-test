@@ -171,10 +171,10 @@ export default {
             await this.$storage.setItem('app-config', (response.appconfig));
             await this.$storage.setItem('session-userinfo', (response.userinfo));
             await this.$storage.setItem('session-user', (response.user));
-            const pp = await this.$api.getpayperiod(response.user)
-            if(pp.status == true){
-              this.$storage.setItem('session-payperiod', (pp.payperiod));
-            }
+            // const pp = await this.$api.getpayperiod(response.user)
+            // if(pp.status == true){
+            //   this.$storage.setItem('session-payperiod', (pp.payperiod));
+            // }
             setTimeout(async () => {
               await loading.dismiss();
               this.$router.push('dashboard').then(() => { window.location.reload() });

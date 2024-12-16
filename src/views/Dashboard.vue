@@ -21,6 +21,12 @@
                   </div>
                 </ion-card-content>
             </IonCard> 
+            <div class="d-flex " style="gap: 6px; margin-bottom: -6px;">
+              <ion-input v-model="displaydate.from"  :readonly="true" @click="pickDate(1)" class="dateInput pt-2"
+              label="Date From" fill="outline" size="small" label-placement="stacked" ></ion-input>
+              <ion-input v-model="displaydate.to" :readonly="true" @click="pickDate(2)" class="dateInput pt-2"
+              label="Date To" fill="outline"  label-placement="stacked" ></ion-input>
+            </div>
             <div v-if="user_info.isOffline == '1'" class="mb-2">
               <ion-button @click="transferlogs()" class="" expand="full" color="primary" shape="round" :disabled="!transferbtn" >Transfer Logs ({{ transfercount }})</ion-button>
             </div>
@@ -89,7 +95,18 @@
           </div>
         </ion-modal>
     </ion-content>
-    
+    <ion-button id="open-date" expand="block" style="display: none;">Date modal</ion-button>
+    <ion-modal id="example-modal" ref="modal" trigger="open-date"  :can-dismiss="datepick.canDismiss">
+      <div class="wrapper">
+        <h2 class="d-flex justify-center pt-2"></h2>
+        <ion-datetime v-model="datepick.model" presentation="date" 
+        :min="datepick.type == 1 ? `` : `${new Date(modeldate.from).toLocaleDateString('en-CA')}T00:00:00`"
+        :max="`${new Date().toLocaleDateString('en-CA')}T23:59:59`"/>
+        <div class="pa-3">
+          <ion-button expand="full" class="main" shape="round" @click="confirmPick()">Confirm</ion-button>
+        </div>
+      </div>
+    </ion-modal>
   </IonPage>
 </template>
 
@@ -97,7 +114,7 @@
 
 
 import { 
-  IonPage, IonContent, IonHeader, IonButton, IonList, IonModal, modalController , IonToast,
+  IonPage, IonContent, IonHeader, IonButton, IonList, IonModal, modalController , IonToast, IonDatetime,
   IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle, IonSpinner, IonInput, IonTextarea,
  IonLabel, IonItem, IonButtons, alertController ,loadingController, IonIcon
    
@@ -115,7 +132,7 @@ import { isBase64 } from 'is-base64';
 export default {
   components: {
     IonPage, IonContent, IonHeader, IonButton, IonItem,IonList,IonModal,modalController,IonToast,
-    IonButtons,IonLabel, alertController, loadingController,IonTextarea,
+    IonButtons,IonLabel, alertController, loadingController,IonTextarea,IonDatetime,
     IonCard, IonCardTitle, IonCardContent, IonCardHeader, IonCardSubtitle,IonSpinner, IonInput, IonIcon
   },
   data(){
@@ -168,12 +185,33 @@ export default {
       requireNet: false,
       settings: false, 
       isonWeb: false,
+      displaydate:{
+        from: '00/00/0000',
+        to: '00/00/0000'
+      },
+      modeldate: {
+        from: '',
+        to: ''
+      },
+      datepick: {
+        canDismiss: true,
+        type: 1,
+        model: new Date()
+      },
     }
   },
   beforeCreate(){
     setInterval(() => {
       this.getTimeDate();
     }, 1000);
+  },
+  mounted(){
+    const date = new Date();
+    date.setDate(date.getDate() - 15);
+    this.modeldate.from = date.toLocaleDateString('en-CA');
+    this.displaydate.from = this.formatDate(date.toLocaleDateString('en-CA'))
+    this.modeldate.to =  new Date().toLocaleDateString('en-CA');
+    this.displaydate.to =  this.formatDate(new Date().toLocaleDateString('en-CA'))
   },
   async created(){
     this.busy = true
@@ -215,6 +253,12 @@ export default {
       if(this.attlogs.findIndex(e => e == null) != -1){
         this.attlogs = this.attlogs.filter(e => e != null)
       }
+      if(new Date(this.attlogs[0].trxdatedb) <= new Date(this.modeldate.from)){
+        if(this.attlogs.length > 350){
+          this.attlogs.splice(0,this.attlogs.length - 350)
+          await this.$storage.setItem('session-attlogs', this.attlogs)
+        }
+      }
     }else{
       await this.getAttlogs()
     }
@@ -224,7 +268,7 @@ export default {
 
   computed:{
     display_attlogs(){
-      const attlogs = this.attlogs;
+      const attlogs = this.attlogs.filter(e => new Date(e.trxdatedb) >= new Date(this.modeldate.from) && new Date(e.trxdatedb) <= new Date(this.modeldate.to));
       if(attlogs.length == 0) return []
       let result = [], setTrx = {}
       attlogs.forEach((t, i) => {
@@ -966,7 +1010,55 @@ export default {
     deg2rad(deg) {
       return deg * (Math.PI/180)
     },
-   
+    pickDate(data){
+      this.datepick.canDismiss = false
+      if(data == 1){
+        this.datepick.type = 1
+        this.datepick.model = this.modeldate.from
+      }else if(data == 2){
+        this.datepick.type = 2
+        this.datepick.model = this.modeldate.to
+      }
+      const datebtn = document.getElementById('open-date');
+      if (datebtn) {
+        datebtn.click();
+      }
+    },
+    confirmPick(){
+      this.datepick.canDismiss = true
+      if(this.datepick.type == 1){
+        this.displaydate.from = this.formatDate(this.datepick.model)
+        this.modeldate.from = this.dateFormat(this.datepick.model)
+      }else{
+        this.displaydate.to = this.formatDate(this.datepick.model)
+        this.modeldate.to = this.dateFormat(this.datepick.model)
+      }
+      this.$refs.modal.$el.dismiss();
+    },
+    dateModel(date) {
+      const pad = (number) => (number < 10 ? '0' + number : number);
+
+      const year = date.getFullYear();
+      const month = pad(date.getMonth() + 1); // Months are zero-based
+      const day = pad(date.getDate());
+      const hours = pad(date.getHours());
+      const minutes = pad(date.getMinutes());
+      const seconds = pad(date.getSeconds());
+
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    },
+    formatDate(date){
+      let year = date.substring(0, 4);
+      let month = date.substring(5, 7)
+      let day = date.substring(8, 10)
+      return `${month}/${day}/${year}`
+    },
+    dateFormat(date){
+      let year = date.substring(0, 4);
+      let month = date.substring(5, 7)
+      let day = date.substring(8, 10)
+      return `${year}-${month}-${day}`
+    },
     setSnackBar(status, message, type){
       this.snackbar.status = status;
       this.snackbar.message = message;
@@ -1140,5 +1232,12 @@ ion-spinner.load{
 }
 ion-textarea#remarkarea{
   min-height: 90px !important;
+}
+.dateInput label .input-outline-container div {
+  height: 40px !important;
+}
+.dateInput label .native-wrapper input  {
+  margin-top: 0px !important; 
+  /* background-color: red; */
 }
 </style>
