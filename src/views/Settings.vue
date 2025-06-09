@@ -27,16 +27,14 @@
                   <ion-label style="font-size: 2.2vh;">{{ address[key] ? address[key].display_name : 'Searching Address....' }}</ion-label>
                   <div class="d-flex ">
                     <h5 class="pe-5" style="font-size: 1.9vh;">Lat: {{ loc.lat }}</h5>
-                    <h5 style="font-size: 1.9vh;">Long: {{ loc.long }}</h5>
+                    <h5 style="font-size: 1.9vh;">Long: {{ loc.long  }}</h5>
                   </div>
                 </div>
               </ion-item>
-          
             </ion-list>
             <div style="position: absolute; bottom: 0px; left: 0px; transform: translate(0%, 0%); width:100%;">
               <ion-button @click="logout()" expand="full" class="main pa-3 pb-4" shape="round"  style="color: white; font-weight: 600;">Log Out</ion-button>
             </div>
-            
         </ion-content>
     </ion-page>
 </template>
@@ -87,7 +85,6 @@ export default {
   methods: {
     async fetchAddress() {
       this.address = await Promise.all(this.Locations.map(e => this.$api.addressapi({ latitude: e.lat, longitude: e.long })  ));
-      // console.log(this.address)
       this.$forceUpdate();
     },
     async startCalibrate(){

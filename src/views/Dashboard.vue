@@ -1009,9 +1009,7 @@ export default {
         ; 
       var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
       var d = (R * c) * 1000 ; // Distance in m
-      
       return d;
-      
     },
     deg2rad(deg) {
       return deg * (Math.PI/180)
