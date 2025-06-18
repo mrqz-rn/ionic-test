@@ -67,7 +67,7 @@
                 <span class="pe-3">Date: {{ viewLog.trxIN.trxdate }}</span>
                 <span class="pe-3">Time: {{ formattedTime(viewLog.trxIN.trxtime) }}</span>
               </ion-label>
-              <p style="" class="px-1">Location:  
+              <p style="" class="px-1" v-if="user_info.disableLocation != '1'">Location:  
                 {{ parseFloat(viewLog.trxIN.latitude).toFixed(4) + ' : ' + 
                 parseFloat(viewLog.trxIN.longitude).toFixed(4) }} </p>
               <h3>Time Out</h3>
@@ -75,7 +75,7 @@
                 <span class="pe-3">Date: {{ viewLog.trxOUT.trxdate || '---' }}</span>
                 <span class="pe-3">Time: {{ viewLog.trxOUT.trxtime ? formattedTime(viewLog.trxOUT.trxtime) : '---'  }}</span>
               </ion-label>
-              <p style="" class="px-1">Location:  {{ parseFloat(viewLog.trxOUT.latitude || 0).toFixed(4) + ' : ' + 
+              <p style="" class="px-1" v-if="user_info.disableLocation != '1'">Location:  {{ parseFloat(viewLog.trxOUT.latitude || 0).toFixed(4) + ' : ' + 
                 parseFloat(viewLog.trxOUT.longitude  || 0).toFixed(4)  }} </p>
               <div class="d-flex justify-space-between pt-2">
                 <h3>Remarks</h3>
